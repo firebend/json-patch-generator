@@ -1,10 +1,9 @@
-name: .NET
+name: .NET Release
 
 on:
   push:
     branches:
-      - '!main'
-  pull_request:
+      - main
 
 jobs:
   build:
@@ -27,3 +26,10 @@ jobs:
       
     - name: Test
       run: dotnet json-patch-generator.sln test --no-build --verbosity normal
+
+    - name: Publish Package
+      uses: rohith/publish-nuget@v2
+      with:
+         PROJECT_FILE_PATH: src/JsonPatchGenerator/JsonPatchGenerator.csproj
+         NUGET_KEY: ${{secrets.FIREBEND_NUGET_KEY}}
+         TAG_COMMIT: false
