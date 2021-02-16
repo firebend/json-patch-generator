@@ -1,11 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Firebend.JsonPatch.Extensions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using Firebend.JsonPatchGenerator.Extensions;
 
-namespace Firebend.JsonPatchGenerator.Tests
+namespace Firebend.JsonPatch.Tests
 {
     [TestClass]
     public class JsonPatchGeneratorTests
@@ -147,42 +148,42 @@ namespace Firebend.JsonPatchGenerator.Tests
             {
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "remove",
                     path = "/Remove",
                     value = null
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "add",
                     path = "/BadgeNumber",
                     value = "2317-616"
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "replace",
                     path = "/BirthDate",
-                    value = new DateTime(1964, 2, 23).ToString()
+                    value = new DateTime(1964, 2, 23).ToString(CultureInfo.InvariantCulture)
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "add",
                     path = "/Cases/1/Solved",
                     value = "True"
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "add",
                     path = "/Cases/1/SolvedDate",
-                    value = new DateTime(1999, 1, 3).ToString()
+                    value = new DateTime(1999, 1, 3).ToString(CultureInfo.InvariantCulture)
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "add",
                     path = "/Cases/-",
                     value = new Case
@@ -195,7 +196,7 @@ namespace Firebend.JsonPatchGenerator.Tests
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
                     //6
-                    from = null,
+                    @from = null,
                     op = "add",
                     path = "/Cases/-",
                     value = new Case
@@ -207,28 +208,28 @@ namespace Firebend.JsonPatchGenerator.Tests
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/Street",
                     value = "Tester 123 Blvd"
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/City",
                     value = "There"
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/State",
                     value = "YY"
                 },
                 new Microsoft.AspNetCore.JsonPatch.Operations.Operation
                 {
-                    from = null,
+                    @from = null,
                     op = "remove",
                     path = "/KnownAddresses/1",
                     value = null
@@ -356,7 +357,7 @@ namespace Firebend.JsonPatchGenerator.Tests
 
             
             CollectionClassArray b = new CollectionClassArray();
-            b.Values = new string[] {"1", "2", "3"};
+            b.Values = new[] {"1", "2", "3"};
 
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
