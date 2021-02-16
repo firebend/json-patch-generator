@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Firebend.JsonPatchGenerator.JsonSerializationSettings
+namespace Firebend.JsonPatch.JsonSerializationSettings
 {
     public static class DefaultJsonSerializationSettings
     {

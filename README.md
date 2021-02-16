@@ -1,2 +1,2 @@
-# json-patch-generator
-1
+# Firebend JSON Patch Generator
+A class library for comparing objects and generating JSON patch documents.

@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Firebend.JsonPatch.JsonSerializationSettings;
 using Newtonsoft.Json;
-using Firebend.JsonPatchGenerator.JsonSerializationSettings;
 
-namespace Firebend.JsonPatchGenerator.Extensions
+namespace Firebend.JsonPatch.Extensions
 {
     public static class Extensions
     {

@@ -1,15 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Reflection;
+using Firebend.JsonPatch.Extensions;
+using Firebend.JsonPatch.JsonSerializationSettings;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
-using System.Reflection;
-using System;
-using Firebend.JsonPatchGenerator.Extensions;
-using Firebend.JsonPatchGenerator.JsonSerializationSettings;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace Firebend.JsonPatchGenerator
+namespace Firebend.JsonPatch
 {
     public class JsonPatchGenerator : IJsonPatchGenerator
     {
@@ -35,9 +35,6 @@ namespace Firebend.JsonPatchGenerator
 
             var originalJson = JObject.FromObject(a, jsonSerializer);
             var modifiedJson = JObject.FromObject(b, jsonSerializer);
-
-            var original = Newtonsoft.Json.JsonConvert.SerializeObject(a);
-            var modified = Newtonsoft.Json.JsonConvert.SerializeObject(b);
 
             var propertyInfos = GetPropertyInfos(b.GetType());
             FillJsonPatchValues(originalJson, modifiedJson, output, propertyInfos);
@@ -274,10 +271,10 @@ namespace Firebend.JsonPatchGenerator
 
         public JsonPatchDocument ConvertToGeneric<T>(JsonPatchDocument<T> patch) where T : class
         {
-            var genericOperations = new List<Microsoft.AspNetCore.JsonPatch.Operations.Operation>();
+            var genericOperations = new List<Operation>();
             foreach(var oper in patch.Operations)
             {
-                var newOper = new Microsoft.AspNetCore.JsonPatch.Operations.Operation();
+                var newOper = new Operation();
                 newOper.op = oper.op;
                 newOper.path = oper.path;
                 newOper.from = oper.from;

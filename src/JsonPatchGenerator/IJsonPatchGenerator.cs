@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace Firebend.JsonPatchGenerator
+namespace Firebend.JsonPatch
 {
     public interface IJsonPatchGenerator
     {

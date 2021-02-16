@@ -11,6 +11,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CA2E674C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonPatchGenerator.Tests", "tests\JsonPatchGenerator.Tests\JsonPatchGenerator.Tests.csproj", "{2BB8E126-DE05-4F14-985B-270175B31DBE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8CD494BB-9D5F-4115-8F24-0A09EC5C4BB3}"
+ProjectSection(SolutionItems) = preProject
+	README.md = README.md
+	nuget-image.png = nuget-image.png
+	LICENSE = LICENSE
+	.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+	.github\workflows\dotnet-release.yml = .github\workflows\dotnet-release.yml
+	.gitignore = .gitignore
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
