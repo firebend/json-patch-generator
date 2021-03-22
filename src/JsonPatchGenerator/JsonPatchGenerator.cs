@@ -43,7 +43,9 @@ namespace Firebend.JsonPatch
             return output;
         }
 
-        public static IDictionary<string, PropertyInfo> GetPropertyInfos(Type type, string currentPath = "/", Dictionary<(string, string), (string, PropertyInfo)> dictionaryProps = null)
+        public static IDictionary<string, PropertyInfo> GetPropertyInfos(Type type,
+            string currentPath = "/",
+            Dictionary<(string, string), (string, PropertyInfo)> dictionaryProps = null)
         {
             var gotProps = false;
 
@@ -243,6 +245,34 @@ namespace Firebend.JsonPatch
             var path = $"{currentPath}{propName}";
             var simplePath = $"{currentSimplePath}{propName}";
 
+            if (originalArray.Count == 0 && modifiedArray.Count > 0)
+            {
+                for (var i = 0; i < modifiedArray.Count; i++)
+                {
+                    patch.Operations.Add(new Operation<T>(
+                        "add",
+                        $"{path}/{i}",
+                        null,
+                        GetValue(modifiedArray[i], simplePath, propertyInfos, "add")));
+                }
+
+                return;
+            }
+
+            PatchArrayIndexChanges(patch, propertyInfos, originalArray, modifiedArray, maxOriginalIndex, path, simplePath);
+
+            PatchRemoveArrayElements(patch, originalArray, modifiedArray, path, maxOriginalIndex);
+        }
+
+        private static void PatchArrayIndexChanges<T>(JsonPatchDocument<T> patch,
+            IDictionary<string, PropertyInfo> propertyInfos,
+            JArray originalArray,
+            JArray modifiedArray,
+            int maxOriginalIndex,
+            string path,
+            string simplePath)
+            where T : class
+        {
             for (var modifiedIndex = 0; modifiedIndex < modifiedArray.Count; modifiedIndex++)
             {
                 if (modifiedIndex > maxOriginalIndex)
@@ -278,8 +308,6 @@ namespace Firebend.JsonPatch
                         GetValue(modifiedArray[modifiedIndex], simplePath, propertyInfos, "replace")));
                 }
             }
-
-            PatchRemoveArrayElements(patch, originalArray, modifiedArray, path, maxOriginalIndex);
         }
 
         private static void PatchRemoveArrayElements<T>(JsonPatchDocument<T> patch, JArray originalArray, JArray modifiedArray, string path, int maxOriginalIndex)
