@@ -6,6 +6,7 @@ namespace Firebend.JsonPatch
     {
         JsonPatchDocument<T> Generate<T>(T a, T b)
             where T : class;
-        JsonPatchDocument ConvertToGeneric<T>(JsonPatchDocument<T> patch) where T : class;
+
+        JsonPatchDocument ConvertFromGeneric<T>(JsonPatchDocument<T> patch) where T : class;
     }
 }

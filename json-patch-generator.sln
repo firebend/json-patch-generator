@@ -19,6 +19,7 @@ ProjectSection(SolutionItems) = preProject
 	.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 	.github\workflows\dotnet-release.yml = .github\workflows\dotnet-release.yml
 	.gitignore = .gitignore
+	.editorconfig = .editorconfig
 EndProjectSection
 EndProject
 Global

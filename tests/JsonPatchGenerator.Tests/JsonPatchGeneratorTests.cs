@@ -11,7 +11,7 @@ namespace Firebend.JsonPatch.Tests
     [TestClass]
     public class JsonPatchGeneratorTests
     {
-        public class Agent
+        private class Agent
         {
             public string FirstName { get; set; }
             public string LastName { get; set; }
@@ -23,13 +23,13 @@ namespace Firebend.JsonPatch.Tests
             public List<Address> KnownAddresses { get; set; }
             public Believer Believer { get; set; }
         }
-        
-        public class Believer
+
+        private class Believer
         {
             public bool WantsToBelieve { get; set; }
         }
 
-        public class Case
+        private class Case
         {
             public string Subject { get; set; }
 
@@ -38,24 +38,22 @@ namespace Firebend.JsonPatch.Tests
             public DateTime SolvedDate { get; set; }
         }
 
-        public class Address
+        private class Address
         {
             public string Street { get; set; }
             public string City { get; set; }
             public string State { get; set; }
         }
 
-        public class CollectionClass
+        private class CollectionClass
         {
-            public List<string>  Values { get; set;  }
+            public List<string> Values { get; set; }
         }
 
-        public class CollectionClassArray
+        private class CollectionClassArray
         {
-            public string[]  Values { get; set;  }
+            public string[] Values { get; set; }
         }
-
-
 
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Generate_Patch()
@@ -70,25 +68,25 @@ namespace Firebend.JsonPatch.Tests
                 BirthDate = new DateTime(1964, 2, 22),
                 Cases = new List<Case>
                 {
-                    new Case
+                    new()
                     {
                         Subject = "Flukeman"
                     },
-                    new Case
+                    new()
                     {
                         Subject = "Wayne Weinseider"
                     }
                 },
                 KnownAddresses = new List<Address>
                 {
-                    new Address
+                    new()
                     {
                         City = "Here",
                         State = "XX",
                         Street = "Fake 123 Street"
 
                     },
-                    new Address
+                    new()
                     {
                         City = "There",
                         State = "YY",
@@ -106,28 +104,28 @@ namespace Firebend.JsonPatch.Tests
                 BirthDate = new DateTime(1964, 2, 23),
                 Cases = new List<Case>
                 {
-                    new Case
+                    new()
                     {
                         Subject = "Flukeman",
                     },
-                    new Case
+                    new()
                     {
                         Subject = "Wayne Weinseider",
                         Solved = true,
                         SolvedDate = new DateTime(1999, 1, 3)
                     },
-                    new Case
+                    new()
                     {
                         Subject = "Eddie Van Blundht Jr"
                     },
-                    new Case
+                    new()
                     {
                         Subject = "The Peacock Family"
                     }
                 },
                 KnownAddresses = new List<Address>
                 {
-                    new Address
+                    new()
                     {
                         City = "There",
                         State = "YY",
@@ -146,44 +144,44 @@ namespace Firebend.JsonPatch.Tests
 
             var expectedOperations = new List<Microsoft.AspNetCore.JsonPatch.Operations.Operation>
             {
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "remove",
                     path = "/Remove",
                     value = null
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "add",
                     path = "/BadgeNumber",
                     value = "2317-616"
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "replace",
                     path = "/BirthDate",
                     value = new DateTime(1964, 2, 23).ToString(CultureInfo.InvariantCulture)
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "add",
                     path = "/Cases/1/Solved",
                     value = "True"
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "add",
                     path = "/Cases/1/SolvedDate",
                     value = new DateTime(1999, 1, 3).ToString(CultureInfo.InvariantCulture)
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "add",
                     path = "/Cases/-",
                     value = new Case
@@ -193,10 +191,10 @@ namespace Firebend.JsonPatch.Tests
                         SolvedDate = DateTime.MinValue
                     }
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
                     //6
-                    @from = null,
+                    from = null,
                     op = "add",
                     path = "/Cases/-",
                     value = new Case
@@ -206,30 +204,30 @@ namespace Firebend.JsonPatch.Tests
                         SolvedDate = DateTime.MinValue
                     }
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/Street",
                     value = "Tester 123 Blvd"
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/City",
                     value = "There"
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "replace",
                     path = "/KnownAddresses/0/State",
                     value = "YY"
                 },
-                new Microsoft.AspNetCore.JsonPatch.Operations.Operation
+                new()
                 {
-                    @from = null,
+                    from = null,
                     op = "remove",
                     path = "/KnownAddresses/1",
                     value = null
@@ -249,17 +247,17 @@ namespace Firebend.JsonPatch.Tests
             //arrange
             var a = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3"}
+                Values = new List<string> { "1", "2", "3" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1", "2"}
+                Values = new List<string> { "1", "2" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -268,24 +266,24 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
         }
-        
+
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Many_Items()
         {
             //arrange
             var a = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3", "4", "5"}
+                Values = new List<string> { "1", "2", "3", "4", "5" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1"}
+                Values = new List<string> { "1" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(4);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -294,24 +292,24 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
         }
-        
+
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Many_Items()
         {
             //arrange
             var a = new CollectionClass
             {
-                Values = new List<string> {"1"}
+                Values = new List<string> { "1" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3", "4", "5"}
+                Values = new List<string> { "1", "2", "3", "4", "5" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(4);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -320,25 +318,25 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
         }
-        
+
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item()
         {
             //arrange
             var a = new CollectionClass
-            { 
-                Values = new List<string> {"1", "2"}
+            {
+                Values = new List<string> { "1", "2" }
             };
-            
+
             var b = new CollectionClass
             {
-               
-                Values = new List<string> {"1", "2", "3"}
+
+                Values = new List<string> { "1", "2", "3" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -352,16 +350,22 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
         {
             //arrange
-            CollectionClassArray a = new CollectionClassArray(); //new CollectionClass
-            a.Values = null;
+            var a = new CollectionClassArray {Values = null}; //new CollectionClass
 
-            
-            CollectionClassArray b = new CollectionClassArray();
-            b.Values = new[] {"1", "2", "3"};
+
+            var b = new CollectionClassArray
+            {
+                Values = new[]
+                {
+                    "1",
+                    "2",
+                    "3"
+                }
+            };
 
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -370,24 +374,24 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
         }
-        
+
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_Beginning()
         {
             //arrange
             var a = new CollectionClass
-            { 
-                Values = new List<string> {"0", "2", "3"}
+            {
+                Values = new List<string> { "0", "2", "3" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3"}
+                Values = new List<string> { "1", "2", "3" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -396,24 +400,24 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
         }
-        
+
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_End()
         {
             //arrange
             var a = new CollectionClass
-            { 
-                Values = new List<string> {"1", "2", "03"}
+            {
+                Values = new List<string> { "1", "2", "03" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3"}
+                Values = new List<string> { "1", "2", "3" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -428,18 +432,18 @@ namespace Firebend.JsonPatch.Tests
         {
             //arrange
             var a = new CollectionClass
-            { 
-                Values = new List<string> {"1", "02", "3"}
+            {
+                Values = new List<string> { "1", "02", "3" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"1", "2", "3"}
+                Values = new List<string> { "1", "2", "3" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
@@ -454,18 +458,18 @@ namespace Firebend.JsonPatch.Tests
         {
             //arrange
             var a = new CollectionClass
-            { 
-                Values = new List<string> {"grape", "apple", "orange"}
+            {
+                Values = new List<string> { "grape", "apple", "orange" }
             };
-            
+
             var b = new CollectionClass
             {
-                Values = new List<string> {"apple", "grape", "orange"}
+                Values = new List<string> { "apple", "grape", "orange" }
             };
-            
+
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
-            
+
             //assert
             patch.Operations.Should().HaveCount(2);
             var json = JsonConvert.SerializeObject(patch.Operations);
