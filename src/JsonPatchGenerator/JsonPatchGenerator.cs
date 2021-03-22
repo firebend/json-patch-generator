@@ -92,55 +92,65 @@ namespace Firebend.JsonPatch
         {
             var propertyInfo = propertyInfos.Get(path);
 
-            if (propertyInfo != null && (propertyInfo.PropertyType.IsObject() || propertyInfo.PropertyType.IsCollection()))
+            if (propertyInfo == null || (!propertyInfo.PropertyType.IsObject() && !propertyInfo.PropertyType.IsCollection()))
             {
-                if (operationType == "add")
-                {
-                    var json = value.ToString();
-                    if (propertyInfo.PropertyType.IsCollection())
-                    {
-                        try
-                        {
-                            var element = JsonConvert.DeserializeObject(json, propertyInfo.PropertyType.CollectionInnerType());
-                            return element;
-                        }
-                        catch (Exception)
-                        {
-                            return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
-                        }
-                    }
-                    return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
-                }
-
-                if (operationType == "replace")
-                {
-                    var json = value.ToString();
-
-                    if (propertyInfo.PropertyType.IsCollection())
-                    {
-                        try
-                        {
-                            var innerCollectionType = propertyInfo.PropertyType.CollectionInnerType();
-                            if (innerCollectionType.IsObject() || innerCollectionType.IsCollection())
-                            {
-                                var element = JsonConvert.DeserializeObject(json, propertyInfo.PropertyType.CollectionInnerType());
-                                return element;
-                            }
-                            else
-                            {
-                                return json;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
-                        }
-                    }
-                    return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
-                }
+                return value.ToString();
             }
 
-            return value.ToString();
+            return operationType switch
+            {
+                "add" => GetValueHandleAdd(value, propertyInfo),
+                "replace" => GetValueHandleReplace(value, propertyInfo),
+                _ => value.ToString()
+            };
+        }
+
+        private static object GetValueHandleReplace(JToken value, PropertyInfo propertyInfo)
+        {
+            var json = value.ToString();
+
+            if (!propertyInfo.PropertyType.IsCollection())
+            {
+                return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
+            }
+
+            try
+            {
+                var innerCollectionType = propertyInfo.PropertyType.CollectionInnerType();
+
+                if (!innerCollectionType.IsObject() && !innerCollectionType.IsCollection())
+                {
+                    return json;
+                }
+
+                var element = JsonConvert.DeserializeObject(json, propertyInfo.PropertyType.CollectionInnerType());
+
+                return element;
+            }
+            catch (Exception)
+            {
+                return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
+            }
+        }
+
+        private static object GetValueHandleAdd(JToken value, PropertyInfo propertyInfo)
+        {
+            var json = value.ToString();
+
+            if (!propertyInfo.PropertyType.IsCollection())
+            {
+                return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
+            }
+
+            try
+            {
+                var element = JsonConvert.DeserializeObject(json, propertyInfo.PropertyType.CollectionInnerType());
+                return element;
+            }
+            catch (Exception)
+            {
+                return JsonConvert.DeserializeObject(json, propertyInfo.PropertyType);
+            }
         }
 
         /// <summary>
