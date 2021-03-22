@@ -27,6 +27,13 @@ namespace Firebend.JsonPatch.Tests
         private class Believer
         {
             public bool WantsToBelieve { get; set; }
+
+            public Believer() { }
+
+            public Believer(bool wantsToBelieve)
+            {
+                WantsToBelieve = wantsToBelieve;
+            }
         }
 
         private class Case
@@ -48,6 +55,11 @@ namespace Firebend.JsonPatch.Tests
         private class CollectionClass
         {
             public List<string> Values { get; set; }
+        }
+
+        private class CollectionClass<T>
+        {
+            public List<T> Values { get; set; }
         }
 
         private class CollectionClassArray
@@ -268,6 +280,32 @@ namespace Firebend.JsonPatch.Tests
         }
 
         [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Item_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer>
+            {
+                Values = new List<Believer> { new(), new(true), new(true) }
+            };
+
+            var b = new CollectionClass<Believer>
+            {
+                Values = new List<Believer> { new(), new(true) }
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
+            var test = a.Clone();
+            patch.ApplyTo(test);
+            test.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Many_Items()
         {
             //arrange
@@ -347,6 +385,32 @@ namespace Firebend.JsonPatch.Tests
         }
 
         [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer>
+            {
+                Values = new List<Believer> { new(), new(true) }
+            };
+
+            var b = new CollectionClass<Believer>
+            {
+                Values = new List<Believer> { new(), new(true), new (true)}
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
+            var test = a.Clone();
+            patch.ApplyTo(test);
+            test.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
         {
             //arrange
@@ -370,6 +434,94 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"add\"}]").Should().BeTrue();
+            var test = a.Clone();
+            patch.ApplyTo(test);
+            test.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> {Values = null}; //new CollectionClass
+
+
+            var b = new CollectionClass<Believer>
+            {
+                Values = new List<Believer>
+                {
+                    new(),
+                    new (true),
+                    new(true)
+                }
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string shouldBeJson =
+                "[{\"value\":[{\"WantsToBelieve\":false},{\"WantsToBelieve\":true},{\"WantsToBelieve\":true}],\"path\":\"/Values\",\"op\":\"add\"}]";
+            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
+            var test = a.Clone();
+            patch.ApplyTo(test);
+            test.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
+        {
+            //arrange
+            var a = new CollectionClass {Values = new List<string>() }; //new CollectionClass
+
+            var b = new CollectionClass
+            {
+                Values = new List<string>
+                {
+                    "1",
+                    "2",
+                    "3"
+                }
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(3);
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string shouldBeJson = "[{\"value\":\"1\",\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":\"2\",\"path\":\"/Values/1\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/Values/2\",\"op\":\"add\"}]";
+            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
+            var test = a.Clone();
+            patch.ApplyTo(test);
+            test.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> {Values = new List<Believer>() }; //new CollectionClass
+
+            var b = new CollectionClass<Believer>
+            {
+                Values = new List<Believer>
+                {
+                    new(true),
+                    new()
+                }
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(2);
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string shouldBeJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false},\"path\":\"/Values/1\",\"op\":\"add\"}]";
+            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
             var test = a.Clone();
             patch.ApplyTo(test);
             test.Should().BeEquivalentTo(b);
