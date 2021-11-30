@@ -5,6 +5,7 @@ using Firebend.JsonPatch.Extensions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Firebend.JsonPatch.Tests
 {
@@ -175,7 +176,7 @@ namespace Firebend.JsonPatch.Tests
                     from = null,
                     op = "replace",
                     path = "/BirthDate",
-                    value = new DateTime(1964, 2, 23).ToString(CultureInfo.InvariantCulture)
+                    value = new DateTime(1964, 2, 23).ToString(CultureInfo.CurrentCulture)
                 },
                 new()
                 {
@@ -189,7 +190,7 @@ namespace Firebend.JsonPatch.Tests
                     from = null,
                     op = "add",
                     path = "/Cases/1/SolvedDate",
-                    value = new DateTime(1999, 1, 3).ToString(CultureInfo.InvariantCulture)
+                    value = new DateTime(1999, 1, 3).ToString(CultureInfo.CurrentCulture)
                 },
                 new()
                 {
