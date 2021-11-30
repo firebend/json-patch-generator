@@ -13,17 +13,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
-  
+        dotnet-version: 6.0.100
+
     - name: Restore dependencies
       run: dotnet restore json-patch-generator.sln
-      
+
     - name: Build
       run: dotnet build json-patch-generator.sln --no-restore
-      
+
     - name: Test
       run: dotnet test json-patch-generator.sln --no-build --verbosity normal
