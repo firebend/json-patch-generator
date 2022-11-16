@@ -669,5 +669,33 @@ namespace Firebend.JsonPatch.Tests
             patch.ApplyTo(aClone);
             aClone.Should().BeEquivalentTo(b);
         }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Generate_Empty_Patch()
+        {
+            //arrange
+            var a = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Believer = null
+            };
+
+            var b = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Believer = null
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.Operations.Should().BeEmpty();
+        }
     }
 }
