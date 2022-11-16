@@ -28,7 +28,7 @@ jobs:
       run: dotnet test json-patch-generator.sln --no-build --verbosity normal
 
     - name: Pack
-      run : dotnet pack **/JsonPatchGenerator.csproj --configuration Release -o out/pack
+      run : dotnet pack **/*/JsonPatchGenerator.csproj --configuration Release -o out/pack
 
     - name: Publish
       run: dotnet nuget push ./out/pack/*.nupkg --api-key  ${{secrets.FIREBEND_NUGET_KEY}} --skip-duplicate --source https://api.nuget.org/v3/index.json
