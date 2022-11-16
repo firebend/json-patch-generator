@@ -27,9 +27,8 @@ jobs:
     - name: Test
       run: dotnet test json-patch-generator.sln --no-build --verbosity normal
 
-    - name: Publish Package
-      uses: rohith/publish-nuget@v2
-      with:
-         PROJECT_FILE_PATH: src/JsonPatchGenerator/JsonPatchGenerator.csproj
-         NUGET_KEY: ${{secrets.FIREBEND_NUGET_KEY}}
-         TAG_COMMIT: false
+    - name: Pack
+      run : dotnet pack **/JsonPatchGenerator.csproj --configuration Release -o out/pack
+
+    - name: Publish
+      run: dotnet nuget push ./out/pack/*.nupkg --api-key  ${{secrets.FIREBEND_NUGET_KEY}} --skip-duplicate --source https://api.nuget.org/v3/index.json
