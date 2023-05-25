@@ -4,6 +4,8 @@ namespace Firebend.JsonPatch.JsonSerializationSettings;
 
 public static class DefaultJsonSerializationSettings
 {
+    public static JsonSerializerSettings Settings = Configure();
+
     public static JsonSerializerSettings Configure(JsonSerializerSettings serializerSettings = null)
     {
         serializerSettings ??= new JsonSerializerSettings();

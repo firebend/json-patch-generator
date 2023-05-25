@@ -30,8 +30,7 @@ public class JsonPatchGenerator : IJsonPatchGenerator
             return output;
         }
 
-        var settings = DefaultJsonSerializationSettings.Configure();
-        var jsonSerializer = JsonSerializer.Create(settings);
+        var jsonSerializer = JsonSerializer.Create(DefaultJsonSerializationSettings.Settings);
 
         var originalJson = JObject.FromObject(a, jsonSerializer);
         var modifiedJson = JObject.FromObject(b, jsonSerializer);
