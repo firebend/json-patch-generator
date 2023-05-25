@@ -26,9 +26,9 @@ public static class Extensions
     public static TValue Get<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue defaultValue = default) =>
         dict.ContainsKey(key) ? dict[key] : defaultValue;
 
-    public static T Clone<T>(this T source) where T : class => ((object)source).Clone<T>();
+    public static T Clone<T>(this T source, JsonSerializerSettings settings = null) where T : class => ((object)source).Clone<T>(settings);
 
-    public static TOut Clone<TOut>(this object source)
+    public static TOut Clone<TOut>(this object source, JsonSerializerSettings settings = null)
     {
         // Don't serialize a null object, simply return the default for that object
         if (ReferenceEquals(source, null))
@@ -36,7 +36,7 @@ public static class Extensions
             return default;
         }
 
-        var settings = DefaultJsonSerializationSettings.Configure();
+        settings ??= DefaultJsonSerializationSettings.Settings;
 
         return JsonConvert.DeserializeObject<TOut>(JsonConvert.SerializeObject(source, settings), settings);
     }

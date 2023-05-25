@@ -249,9 +249,8 @@ namespace Firebend.JsonPatch.Tests
 
             patchDeserializedOperations.Should().BeEquivalentTo(expectedOperations);
 
-            var aClone = a.Clone();
-            patch.ApplyTo(aClone);
-            aClone.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -275,9 +274,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -301,9 +299,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -327,9 +324,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(4);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/4\",\"op\":\"remove\"},{\"path\":\"/values/3\",\"op\":\"remove\"},{\"path\":\"/values/2\",\"op\":\"remove\"},{\"path\":\"/values/1\",\"op\":\"remove\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -353,9 +349,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(4);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"4\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"5\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -380,9 +375,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -406,16 +400,15 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
         {
             //arrange
-            var a = new CollectionClassArray {Values = null}; //new CollectionClass
+            var a = new CollectionClassArray {Values = null};
 
 
             var b = new CollectionClassArray
@@ -435,16 +428,15 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"add\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = null}; //new CollectionClass
+            var a = new CollectionClass<Believer> {Values = null};
 
 
             var b = new CollectionClass<Believer>
@@ -463,19 +455,17 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson =
-                "[{\"value\":[{\"WantsToBelieve\":false},{\"WantsToBelieve\":true},{\"WantsToBelieve\":true}],\"path\":\"/Values\",\"op\":\"add\"}]";
+            const string shouldBeJson = "[{\"value\":[{\"WantsToBelieve\":false},{\"WantsToBelieve\":true},{\"WantsToBelieve\":true}],\"path\":\"/Values\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
         {
             //arrange
-            var a = new CollectionClass {Values = new List<string>() }; //new CollectionClass
+            var a = new CollectionClass {Values = new List<string>() };
 
             var b = new CollectionClass
             {
@@ -495,16 +485,15 @@ namespace Firebend.JsonPatch.Tests
             var json = JsonConvert.SerializeObject(patch.Operations);
             const string shouldBeJson = "[{\"value\":\"1\",\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":\"2\",\"path\":\"/Values/1\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/Values/2\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = new List<Believer>() }; //new CollectionClass
+            var a = new CollectionClass<Believer> {Values = new List<Believer>() };
 
             var b = new CollectionClass<Believer>
             {
@@ -523,9 +512,8 @@ namespace Firebend.JsonPatch.Tests
             var json = JsonConvert.SerializeObject(patch.Operations);
             const string shouldBeJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false},\"path\":\"/Values/1\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -549,9 +537,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"1\",\"path\":\"/values/0\",\"op\":\"replace\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -575,9 +562,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/2\",\"op\":\"replace\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -601,9 +587,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -627,9 +612,8 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().HaveCount(2);
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"apple\",\"path\":\"/values/0\",\"op\":\"replace\"},{\"value\":\"grape\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
-            var test = a.Clone();
-            patch.ApplyTo(test);
-            test.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
@@ -665,9 +649,8 @@ namespace Firebend.JsonPatch.Tests
             const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Believer\",\"op\":\"add\"}]";
             patchJson.EqualsIgnoreCaseAndWhitespace(expectedJson).Should().BeTrue();
 
-            var aClone = a.Clone();
-            patch.ApplyTo(aClone);
-            aClone.Should().BeEquivalentTo(b);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
 
         [TestMethod]
