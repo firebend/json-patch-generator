@@ -13,6 +13,7 @@ public static class DefaultJsonSerializationSettings
         serializerSettings.NullValueHandling = NullValueHandling.Ignore;
         serializerSettings.DefaultValueHandling = DefaultValueHandling.Ignore;
         serializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+        serializerSettings.Formatting = Formatting.None;
 
         return serializerSettings;
     }
