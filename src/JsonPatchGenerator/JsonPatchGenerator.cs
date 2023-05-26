@@ -20,7 +20,7 @@ public class JsonPatchGenerator : IJsonPatchGenerator
     /// <param name="a">The original object</param>
     /// <param name="b">The modified object</param>
     /// <returns>The <see cref="JsonPatchDocument" /></returns>
-    public JsonPatchDocument<T> Generate<T>(T a, T b)
+    public JsonPatchDocument<T> Generate<T>(T a, T b, JsonSerializerSettings settings = null)
         where T : class
     {
         var output = new JsonPatchDocument<T>();
@@ -30,7 +30,9 @@ public class JsonPatchGenerator : IJsonPatchGenerator
             return output;
         }
 
-        var jsonSerializer = JsonSerializer.Create(DefaultJsonSerializationSettings.Settings);
+        settings ??= DefaultJsonSerializationSettings.Settings;
+
+        var jsonSerializer = JsonSerializer.Create(settings);
 
         var originalJson = JObject.FromObject(a, jsonSerializer);
         var modifiedJson = JObject.FromObject(b, jsonSerializer);
@@ -84,14 +86,14 @@ public class JsonPatchGenerator : IJsonPatchGenerator
 
         var dictProps = dictionaryProps
             .Select(x => x.Value)
-            .ToDictionary(x => x.Item1, x => x.Item2);
+            .ToDictionary(x => x.Item1.ToLower(), x => x.Item2);
 
         return dictProps;
     }
 
     public static object GetValue(JToken value, string path, IDictionary<string, PropertyInfo> propertyInfos, string operationType)
     {
-        var propertyInfo = propertyInfos.Get(path);
+        var propertyInfo = propertyInfos.Get(path.ToLower());
 
         if (propertyInfo == null || (!propertyInfo.PropertyType.IsObject() && !propertyInfo.PropertyType.IsCollection()))
         {
@@ -199,6 +201,7 @@ public class JsonPatchGenerator : IJsonPatchGenerator
                 FillJsonPatchValues(originalProp.Value as JObject,
                     modifiedProp.Value as JObject,
                     patch, propertyInfos, $"{currentPath}{propName}/", $"{currentPath}{propName}/");
+
                 continue;
             }
 
