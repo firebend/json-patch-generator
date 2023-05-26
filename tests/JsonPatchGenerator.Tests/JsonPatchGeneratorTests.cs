@@ -5,6 +5,8 @@ using Firebend.JsonPatch.Extensions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Firebend.JsonPatch.Tests
@@ -390,7 +392,7 @@ namespace Firebend.JsonPatch.Tests
 
             var b = new CollectionClass<Believer>
             {
-                Values = new List<Believer> { new(), new(true), new (true)}
+                Values = new List<Believer> { new(), new(true), new(true) }
             };
 
             //act
@@ -408,7 +410,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
         {
             //arrange
-            var a = new CollectionClassArray {Values = null};
+            var a = new CollectionClassArray { Values = null };
 
 
             var b = new CollectionClassArray
@@ -436,7 +438,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = null};
+            var a = new CollectionClass<Believer> { Values = null };
 
 
             var b = new CollectionClass<Believer>
@@ -465,7 +467,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
         {
             //arrange
-            var a = new CollectionClass {Values = new List<string>() };
+            var a = new CollectionClass { Values = new List<string>() };
 
             var b = new CollectionClass
             {
@@ -493,7 +495,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = new List<Believer>() };
+            var a = new CollectionClass<Believer> { Values = new List<Believer>() };
 
             var b = new CollectionClass<Believer>
             {
@@ -679,6 +681,100 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patch.Should().NotBeNull();
             patch.Operations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List()
+        {
+            //arrange
+            var a = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                }
+            };
+
+            var b = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>{
+            new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Believer = null
+            }}
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        public class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
+        {
+            protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
+            {
+                var contract = base.CreateDictionaryContract(objectType);
+
+                contract.DictionaryKeyResolver = propertyName => propertyName;
+
+                return contract;
+            }
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List_With_Custom_Settings()
+        {
+            //arrange
+            var serializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            serializerSettings.Converters.Add(new StringEnumConverter());
+            serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
+
+            serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
+            serializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
+
+            serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+
+            var a = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                }
+            };
+
+            var b = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>{
+            new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Believer = null
+            }}
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b, serializerSettings);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
         }
     }
 }
