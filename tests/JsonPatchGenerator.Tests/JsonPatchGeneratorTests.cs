@@ -392,7 +392,7 @@ namespace Firebend.JsonPatch.Tests
 
             var b = new CollectionClass<Believer>
             {
-                Values = new List<Believer> { new(), new(true), new (true)}
+                Values = new List<Believer> { new(), new(true), new(true) }
             };
 
             //act
@@ -410,7 +410,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
         {
             //arrange
-            var a = new CollectionClassArray {Values = null};
+            var a = new CollectionClassArray { Values = null };
 
 
             var b = new CollectionClassArray
@@ -438,7 +438,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = null};
+            var a = new CollectionClass<Believer> { Values = null };
 
 
             var b = new CollectionClass<Believer>
@@ -467,7 +467,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
         {
             //arrange
-            var a = new CollectionClass {Values = new List<string>() };
+            var a = new CollectionClass { Values = new List<string>() };
 
             var b = new CollectionClass
             {
@@ -495,7 +495,7 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
         {
             //arrange
-            var a = new CollectionClass<Believer> {Values = new List<Believer>() };
+            var a = new CollectionClass<Believer> { Values = new List<Believer>() };
 
             var b = new CollectionClass<Believer>
             {
@@ -687,11 +687,15 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List()
         {
             //arrange
-            var a = new CollectionClass<Agent>{
-                Values = new List<Agent>{
-                }};
+            var a = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                }
+            };
 
-            var b = new CollectionClass<Agent>{
+            var b = new CollectionClass<Agent>
+            {
                 Values = new List<Agent>{
             new Agent
             {
@@ -699,7 +703,8 @@ namespace Firebend.JsonPatch.Tests
                 LastName = "Scully",
                 Email = "dscully@fbi.gov",
                 Believer = null
-            }}};
+            }}
+            };
 
             //act
             var patch = new JsonPatchGenerator().Generate(a, b);
@@ -727,11 +732,12 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List_With_Custom_Settings()
         {
             //arrange
-            var serializerSettings = new JsonSerializerSettings();
-
-            serializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            serializerSettings.DefaultValueHandling = DefaultValueHandling.Ignore;
-            serializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+            var serializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
 
             serializerSettings.Converters.Add(new StringEnumConverter());
             serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
@@ -742,11 +748,15 @@ namespace Firebend.JsonPatch.Tests
 
             serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
 
-            var a = new CollectionClass<Agent>{
-                Values = new List<Agent>{
-                }};
+            var a = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                }
+            };
 
-            var b = new CollectionClass<Agent>{
+            var b = new CollectionClass<Agent>
+            {
                 Values = new List<Agent>{
             new Agent
             {
@@ -754,7 +764,8 @@ namespace Firebend.JsonPatch.Tests
                 LastName = "Scully",
                 Email = "dscully@fbi.gov",
                 Believer = null
-            }}};
+            }}
+            };
 
             //act
             var patch = new JsonPatchGenerator().Generate(a, b, serializerSettings);
