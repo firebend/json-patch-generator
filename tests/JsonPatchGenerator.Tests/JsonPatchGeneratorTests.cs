@@ -31,6 +31,8 @@ namespace Firebend.JsonPatch.Tests
         {
             public bool WantsToBelieve { get; set; }
 
+            public string CatchPhrase { get; set; }
+
             public Believer() { }
 
             public Believer(bool wantsToBelieve)
@@ -46,6 +48,8 @@ namespace Firebend.JsonPatch.Tests
             public bool Solved { get; set; }
 
             public DateTime SolvedDate { get; set; }
+
+            public Agent AssignedAgent { get; set; }
         }
 
         private class Address
@@ -401,7 +405,7 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
+            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
         }
@@ -457,7 +461,8 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patch.Operations.Should().HaveCount(1);
             var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson = "[{\"value\":[{\"WantsToBelieve\":false},{\"WantsToBelieve\":true},{\"WantsToBelieve\":true}],\"path\":\"/Values\",\"op\":\"add\"}]";
+            const string shouldBeJson =
+                "[{\"value\":[{\"WantsToBelieve\":false,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null}],\"path\":\"/Values\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
@@ -512,7 +517,8 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patch.Operations.Should().HaveCount(2);
             var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false},\"path\":\"/Values/1\",\"op\":\"add\"}]";
+            const string shouldBeJson =
+                "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false,\"CatchPhrase\":null},\"path\":\"/Values/1\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
@@ -648,7 +654,7 @@ namespace Firebend.JsonPatch.Tests
             patch.Should().NotBeNull();
 
             var patchJson = JsonConvert.SerializeObject(patch);
-            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Believer\",\"op\":\"add\"}]";
+            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Believer\",\"op\":\"add\"}]";
             patchJson.EqualsIgnoreCaseAndWhitespace(expectedJson).Should().BeTrue();
 
             patch.ApplyTo(a);
@@ -689,15 +695,13 @@ namespace Firebend.JsonPatch.Tests
             //arrange
             var a = new CollectionClass<Agent>
             {
-                Values = new List<Agent>
-                {
-                }
+                Values = new List<Agent>()
             };
 
             var b = new CollectionClass<Agent>
             {
                 Values = new List<Agent>{
-            new Agent
+            new()
             {
                 FirstName = "Dana",
                 LastName = "Scully",
@@ -732,27 +736,11 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List_With_Custom_Settings()
         {
             //arrange
-            var serializerSettings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
-
-            serializerSettings.Converters.Add(new StringEnumConverter());
-            serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
-
-            serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
-            serializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-            serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
-
-            serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            var serializerSettings = CreateCustomSettings();
 
             var a = new CollectionClass<Agent>
             {
-                Values = new List<Agent>
-                {
-                }
+                Values = new List<Agent>()
             };
 
             var b = new CollectionClass<Agent>
@@ -775,6 +763,132 @@ namespace Firebend.JsonPatch.Tests
             patch.Operations.Should().NotBeEmpty();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Collection_Complex_Object_Change_With_Custom_Settings()
+        {
+            //arrange
+            var serializerSettings = CreateCustomSettings();
+
+            var a = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                    new()
+                    {
+                        FirstName = "Dana",
+                        LastName = "Scully",
+                        Email = "dscully@fbi.gov",
+                        Cases = new List<Case>()
+                        {
+                            new()
+                            {
+                                Subject = "Flukeman",
+                                AssignedAgent = new()
+                                {
+                                    FirstName = "Dana",
+                                    LastName = "Scully",
+                                }
+                            }
+                        }
+                    },
+                    new()
+                    {
+                        FirstName = "Fox",
+                        LastName = "Mulder",
+                        Email = "dmulder@fbi.gov",
+                        Believer = new Believer(true),
+                    }
+                }
+            };
+
+            var b = new CollectionClass<Agent>
+            {
+                Values = new List<Agent>
+                {
+                    new()
+                    {
+                        FirstName = "Dana",
+                        LastName = "Scully",
+                        Email = "dscully@fbi.gov",
+                        Believer = new Believer(false),
+                        Cases = new List<Case>()
+                        {
+                            new()
+                            {
+                                Subject = "Flukeman",
+                                Solved = true,
+                                AssignedAgent = new()
+                                {
+                                    FirstName = "Dana",
+                                    LastName = "Scully",
+                                }
+                            },
+                            new()
+                            {
+                                Subject = "Home",
+                                Solved = false,
+                                AssignedAgent = new()
+                                {
+                                    FirstName = "Fox",
+                                    LastName = "Mulder",
+                                }
+                            }
+                        }
+                    },
+                    new()
+                    {
+                        FirstName = "Fox",
+                        LastName = "Mulder",
+                        Email = "dmulder@fbi.gov",
+                        Believer = new Believer(true),
+                        Cases = new List<Case>()
+                        {
+                            new()
+                            {
+                                Subject = "Home",
+                                Solved = false,
+                                AssignedAgent = new()
+                                {
+                                    FirstName = "Fox",
+                                    LastName = "Mulder",
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            //act
+            var patch = new JsonPatchGenerator().Generate(a, b, serializerSettings);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        private static JsonSerializerSettings CreateCustomSettings()
+        {
+            var serializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            serializerSettings.Converters.Add(new StringEnumConverter());
+            serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
+
+            serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
+            serializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
+
+            serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
+            return serializerSettings;
         }
     }
 }
