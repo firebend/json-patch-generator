@@ -158,6 +158,7 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
 
             var patchDeserializedOperations = patch.Operations;
 
@@ -278,6 +279,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -303,6 +306,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -328,6 +333,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(4);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/4\",\"op\":\"remove\"},{\"path\":\"/values/3\",\"op\":\"remove\"},{\"path\":\"/values/2\",\"op\":\"remove\"},{\"path\":\"/values/1\",\"op\":\"remove\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -353,6 +360,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(4);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"4\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"5\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -379,6 +388,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -404,6 +415,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -432,6 +445,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"add\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -460,6 +475,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             const string shouldBeJson =
                 "[{\"value\":[{\"WantsToBelieve\":false,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null}],\"path\":\"/Values\",\"op\":\"add\"}]";
@@ -489,6 +506,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(3);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             const string shouldBeJson = "[{\"value\":\"1\",\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":\"2\",\"path\":\"/Values/1\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/Values/2\",\"op\":\"add\"}]";
             json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
@@ -516,6 +535,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(2);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             const string shouldBeJson =
                 "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false,\"CatchPhrase\":null},\"path\":\"/Values/1\",\"op\":\"add\"}]";
@@ -543,6 +564,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"1\",\"path\":\"/values/0\",\"op\":\"replace\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -568,6 +591,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/2\",\"op\":\"replace\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -593,6 +618,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -618,6 +645,8 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Operations.Should().HaveCount(2);
+            patch.ValuesShouldNotContainJson();
+
             var json = JsonConvert.SerializeObject(patch.Operations);
             json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"apple\",\"path\":\"/values/0\",\"op\":\"replace\"},{\"value\":\"grape\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
             patch.ApplyTo(a);
@@ -652,6 +681,7 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
 
             var patchJson = JsonConvert.SerializeObject(patch);
             const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Believer\",\"op\":\"add\"}]";
@@ -686,6 +716,7 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
             patch.Operations.Should().BeEmpty();
         }
 
@@ -715,21 +746,10 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
             patch.Operations.Should().NotBeEmpty();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
-        }
-
-        public class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
-        {
-            protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
-            {
-                var contract = base.CreateDictionaryContract(objectType);
-
-                contract.DictionaryKeyResolver = propertyName => propertyName;
-
-                return contract;
-            }
         }
 
         [TestMethod]
@@ -760,6 +780,7 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
             patch.Operations.Should().NotBeEmpty();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
@@ -769,95 +790,25 @@ namespace Firebend.JsonPatch.Tests
         public void Json_Patch_Document_Generator_Should_Handle_Collection_Complex_Object_Change_With_Custom_Settings()
         {
             //arrange
-            var serializerSettings = CreateCustomSettings();
-
-            var a = new CollectionClass<Agent>
+            var serializerSettings = new JsonSerializerSettings()
             {
-                Values = new List<Agent>
-                {
-                    new()
-                    {
-                        FirstName = "Dana",
-                        LastName = "Scully",
-                        Email = "dscully@fbi.gov",
-                        Cases = new List<Case>()
-                        {
-                            new()
-                            {
-                                Subject = "Flukeman",
-                                AssignedAgent = new()
-                                {
-                                    FirstName = "Dana",
-                                    LastName = "Scully",
-                                }
-                            }
-                        }
-                    },
-                    new()
-                    {
-                        FirstName = "Fox",
-                        LastName = "Mulder",
-                        Email = "dmulder@fbi.gov",
-                        Believer = new Believer(true),
-                    }
-                }
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore, TypeNameHandling = TypeNameHandling.Objects
             };
 
-            var b = new CollectionClass<Agent>
+            var a = new Agent()
             {
-                Values = new List<Agent>
-                {
-                    new()
-                    {
-                        FirstName = "Dana",
-                        LastName = "Scully",
-                        Email = "dscully@fbi.gov",
-                        Believer = new Believer(false),
-                        Cases = new List<Case>()
-                        {
-                            new()
-                            {
-                                Subject = "Flukeman",
-                                Solved = true,
-                                AssignedAgent = new()
-                                {
-                                    FirstName = "Dana",
-                                    LastName = "Scully",
-                                }
-                            },
-                            new()
-                            {
-                                Subject = "Home",
-                                Solved = false,
-                                AssignedAgent = new()
-                                {
-                                    FirstName = "Fox",
-                                    LastName = "Mulder",
-                                }
-                            }
-                        }
-                    },
-                    new()
-                    {
-                        FirstName = "Fox",
-                        LastName = "Mulder",
-                        Email = "dmulder@fbi.gov",
-                        Believer = new Believer(true),
-                        Cases = new List<Case>()
-                        {
-                            new()
-                            {
-                                Subject = "Home",
-                                Solved = false,
-                                AssignedAgent = new()
-                                {
-                                    FirstName = "Fox",
-                                    LastName = "Mulder",
-                                }
-                            }
-                        }
-                    }
-                }
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Cases = new List<Case>() { new() { Subject = "Flukeman", AssignedAgent = new() { FirstName = "Dana", LastName = "Scully", } } }
+            };
+
+            var b = new Agent()
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Cases = new List<Case>() { new() { Subject = "Flukeman", AssignedAgent = new() { FirstName = "Dana", LastName = "Scully", Email = "d@gov.com", Believer = new (true)} } }
             };
 
             //act
@@ -865,9 +816,22 @@ namespace Firebend.JsonPatch.Tests
 
             //assert
             patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
             patch.Operations.Should().NotBeEmpty();
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
+        }
+
+        public class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
+        {
+            protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
+            {
+                var contract = base.CreateDictionaryContract(objectType);
+
+                contract.DictionaryKeyResolver = propertyName => propertyName;
+
+                return contract;
+            }
         }
 
         private static JsonSerializerSettings CreateCustomSettings()

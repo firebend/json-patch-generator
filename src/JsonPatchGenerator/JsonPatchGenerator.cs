@@ -44,13 +44,11 @@ public class JsonPatchGenerator : IJsonPatchGenerator
         return output;
     }
 
-    public static IDictionary<string, PropertyInfo> GetPropertyInfos(Type type,
+    private static IDictionary<string, PropertyInfo> GetPropertyInfos(Type type,
         string currentPath = "/",
-        Dictionary<(string, string), (string, PropertyInfo)> dictionaryProps = null)
+        Dictionary<string, PropertyInfo> dictionaryProps = null)
     {
-        var gotProps = false;
-
-        dictionaryProps ??= new Dictionary<(string, string), (string, PropertyInfo)>();
+        dictionaryProps ??= new();
 
         var properties = type.GetProperties();
 
@@ -58,42 +56,60 @@ public class JsonPatchGenerator : IJsonPatchGenerator
         {
             var path = $"{currentPath}{prop.Name}";
 
-            if (dictionaryProps.ContainsKey((prop.PropertyType.FullName, prop.Name)))
+            if (dictionaryProps.ContainsKey(path))
             {
                 continue;
             }
-
-            gotProps = true;
-            dictionaryProps[(prop.PropertyType.FullName, prop.Name)] = (path, prop);
+            dictionaryProps[path] = prop;
         }
 
-        if (gotProps)
+        foreach (var prop in properties)
         {
-            foreach (var prop in properties)
-            {
-                var path = $"{currentPath}{prop.Name}/";
+            var path = $"{currentPath}{prop.Name}/";
 
-                if (prop.PropertyType.IsCollection())
-                {
-                    GetPropertyInfos(prop.PropertyType.CollectionInnerType(), path, dictionaryProps);
-                }
-                else if (prop.PropertyType.IsObject())
-                {
-                    GetPropertyInfos(prop.PropertyType, path, dictionaryProps);
-                }
+            if (prop.PropertyType.IsCollection())
+            {
+                GetPropertyInfos(prop.PropertyType.CollectionInnerType(), path + "*/", dictionaryProps);
+            }
+            else if (prop.PropertyType.IsObject())
+            {
+                GetPropertyInfos(prop.PropertyType, path, dictionaryProps);
             }
         }
 
-        var dictProps = dictionaryProps
-            .Select(x => x.Value)
-            .ToDictionary(x => x.Item1.ToLower(), x => x.Item2);
-
-        return dictProps;
+        return dictionaryProps;
     }
 
-    public static object GetValue(JToken value, string path, IDictionary<string, PropertyInfo> propertyInfos, string operationType)
+    private static string ConvertJsonPathToDictKey(string path)
     {
-        var propertyInfo = propertyInfos.Get(path.ToLower());
+        var split = path.ToLower().Split('/');
+        var sb = new List<string>(split.Length);
+
+        foreach (var s in split)
+        {
+            if (s.Length == 1)
+            {
+                if(s[0] is '-' || char.IsDigit(s[0]))
+                {
+                    sb.Add("*");
+                    continue;
+                }
+            }
+
+            sb.Add(s);
+        }
+
+        return string.Join('/', sb);
+    }
+
+    public static object GetValue(JToken value,
+        string path,
+        IDictionary<string, PropertyInfo> propertyInfos,
+        string operationType)
+    {
+        var key = ConvertJsonPathToDictKey(path);
+
+        var propertyInfo = propertyInfos.Get(key);
 
         if (propertyInfo == null || (!propertyInfo.PropertyType.IsObject() && !propertyInfo.PropertyType.IsCollection()))
         {
@@ -184,13 +200,13 @@ public class JsonPatchGenerator : IJsonPatchGenerator
             var originalProp = originalJson.Property(propName);
             var modifiedProp = modifiedJson.Property(propName);
 
-            if (originalProp.Value.Type != modifiedProp.Value.Type)
+            if (originalProp?.Value.Type != modifiedProp?.Value.Type)
             {
                 PatchTypeChange(patch, propertyInfos, currentPath, currentSimplePath, propName, modifiedProp);
                 continue;
             }
 
-            if (string.Equals(originalProp.Value.ToString(Formatting.None), modifiedProp.Value.ToString(Formatting.None)))
+            if (string.Equals(originalProp?.Value.ToString(Formatting.None), modifiedProp?.Value.ToString(Formatting.None)))
             {
                 continue;
             }
@@ -351,7 +367,7 @@ public class JsonPatchGenerator : IJsonPatchGenerator
             var path = $"{currentPath}{propName}";
             var simplePath = $"{currentSimplePath}{propName}";
 
-            patch.Operations.Add(new Operation<T>("add", path, null, GetValue(prop.Value, simplePath, propertyInfos, "add")));
+            patch.Operations.Add(new Operation<T>("add", path, null, GetValue(prop?.Value, simplePath, propertyInfos, "add")));
         }
     }
 
