@@ -25,11 +25,11 @@ public class JsonPatchWriter : IJsonPatchWriter
 
     public string Finish()
     {
-        _writer.WriteEndArray();
-        _writer.Close();
-        _stringWriter.Close();
+        _writer?.WriteEndArray();
+        _writer?.Close();
+        _stringWriter?.Close();
         _isOpen = false;
-        return _stringBuilder.ToString();
+        return _stringBuilder?.ToString();
     }
 
     public void Dispose()
@@ -54,6 +54,11 @@ public class JsonPatchWriter : IJsonPatchWriter
         if (_isOpen is false)
         {
             Open();
+        }
+
+        if (_writer is null)
+        {
+            return;
         }
 
         _writer.WriteStartObject();

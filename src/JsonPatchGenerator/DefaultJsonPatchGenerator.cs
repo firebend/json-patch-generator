@@ -62,9 +62,14 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 
         var patchJson = _writer.Finish();
 
-        var s = _settings.Get();
+        if (string.IsNullOrWhiteSpace(patchJson))
+        {
+            return new();
+        }
 
-        var doc = JsonConvert.DeserializeObject<JsonPatchDocument<T>>(patchJson, s);
+        var serializerSettings = _settings.Get();
+        var doc = JsonConvert.DeserializeObject<JsonPatchDocument<T>>(patchJson, serializerSettings);
+
         return doc;
     }
 
