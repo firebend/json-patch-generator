@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using Firebend.JsonPatch.Extensions;
 using FluentAssertions;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Firebend.JsonPatch.Tests
@@ -14,6 +16,577 @@ namespace Firebend.JsonPatch.Tests
     [TestClass]
     public class JsonPatchGeneratorTests
     {
+        private static IJsonPatchGenerator CreateGenerator(JsonSerializerSettings settings = null)
+        {
+            settings ??= new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Objects };
+
+            var settingsProvider = new JsonDiffSettingsProvider(settings);
+            var writer = new JsonPatchWriter();
+            var detector = new JsonDiffDetector(settingsProvider);
+            var generator = new NewJsonPatchGenerator(detector, writer, settingsProvider);
+            return generator;
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Generate_Patch()
+        {
+            //arrange
+            var a = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Remove = "get it outta here!",
+                BirthDate = new DateTime(1964, 2, 22),
+                Cases = new List<Case> { new() { Subject = "Flukeman" }, new() { Subject = "Wayne Weinseider" } },
+                KnownAddresses = new List<Address>
+                {
+                    new() { City = "Here", State = "XX", Street = "Fake 123 Street" }, new() { City = "There", State = "YY", Street = "Tester 123 Blvd" }
+                }
+            };
+
+            var b = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                BadgeNumber = "2317-616",
+                BirthDate = new DateTime(1964, 2, 23),
+                Cases = new List<Case>
+                {
+                    new() { Subject = "Flukeman" },
+                    new() { Subject = "Wayne Weinseider", Solved = true, SolvedDate = new DateTime(1999, 1, 3) },
+                    new() { Subject = "Eddie Van Blundht Jr" },
+                    new() { Subject = "The Peacock Family" }
+                },
+                KnownAddresses = new List<Address> { new() { City = "There", State = "YY", Street = "Tester 123 Blvd" } }
+            };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+
+            var patchOperations = patch.Operations;
+
+            var expectedOperations = new List<Operation>
+            {
+                new() { from = null, op = "remove", path = "/Remove", value = null },
+                new() { from = null, op = "add", path = "/BadgeNumber", value = "2317-616" },
+                new() { from = null, op = "replace", path = "/BirthDate", value = new DateTime(1964, 2, 23).ToString(CultureInfo.CurrentCulture) },
+                new() { from = null, op = "add", path = "/Cases/1/Solved", value = "True" },
+                new() { from = null, op = "add", path = "/Cases/1/SolvedDate", value = new DateTime(1999, 1, 3).ToString(CultureInfo.CurrentCulture) },
+                new()
+                {
+                    from = null,
+                    op = "add",
+                    path = "/Cases/-",
+                    value = new Case { Subject = "Eddie Van Blundht Jr", Solved = false, SolvedDate = DateTime.MinValue }
+                },
+                new()
+                {
+                    //6
+                    from = null,
+                    op = "add",
+                    path = "/Cases/-",
+                    value = new Case { Subject = "The Peacock Family", Solved = false, SolvedDate = DateTime.MinValue }
+                },
+                new() { from = null, op = "replace", path = "/KnownAddresses/0/Street", value = "Tester 123 Blvd" },
+                new() { from = null, op = "replace", path = "/KnownAddresses/0/City", value = "There" },
+                new() { from = null, op = "replace", path = "/KnownAddresses/0/State", value = "YY" },
+                new() { from = null, op = "remove", path = "/KnownAddresses/1", value = null }
+            };
+
+            //patchOperations.Should().BeEquivalentTo(expectedOperations);
+
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Item()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Item_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> { Values = new List<Believer> { new(), new(true), new(true) } };
+
+            var b = new CollectionClass<Believer> { Values = new List<Believer> { new(), new(true) } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Many_Items()
+        {
+            //arrange
+            var a = new CollectionClass
+            {
+                Values = new List<string>
+                {
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                }
+            };
+
+            var b = new CollectionClass { Values = new List<string> { "1" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(4);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.EqualsIgnoreCaseAndWhitespace(
+                    "[{\"path\":\"/values/4\",\"op\":\"remove\"},{\"path\":\"/values/3\",\"op\":\"remove\"},{\"path\":\"/values/2\",\"op\":\"remove\"},{\"path\":\"/values/1\",\"op\":\"remove\"}]")
+                .Should()
+                .BeTrue();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Many_Items()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "1" } };
+
+            var b = new CollectionClass
+            {
+                Values = new List<string>
+                {
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                }
+            };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(4);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should()
+                .BeEquivalentTo(
+                    "[{\"value\":\"2\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"4\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"5\",\"path\":\"/values/-\",\"op\":\"add\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "1", "2" } };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> { Values = new List<Believer> { new(), new(true) } };
+
+            var b = new CollectionClass<Believer> { Values = new List<Believer> { new(), new(true), new(true) } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/-\",\"op\":\"add\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
+        {
+            //arrange
+            var a = new CollectionClassArray { Values = null };
+
+
+            var b = new CollectionClassArray
+            {
+                Values = new[]
+                {
+                    "1",
+                    "2",
+                    "3"
+                }
+            };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"replace\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> { Values = null };
+
+
+            var b = new CollectionClass<Believer> { Values = new List<Believer> { new(), new(true), new(true) } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string>() };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(3);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string shouldBeJson =
+                "[{\"value\":\"1\",\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":\"2\",\"path\":\"/Values/1\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/Values/2\",\"op\":\"add\"}]";
+            json.Should().BeEquivalentTo(shouldBeJson);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
+        {
+            //arrange
+            var a = new CollectionClass<Believer> { Values = new List<Believer>() };
+
+            var b = new CollectionClass<Believer> { Values = new List<Believer> { new(true), new() } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(2);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string shouldBeJson =
+                "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false},\"path\":\"/Values/1\",\"op\":\"add\"}]";
+            json.Should().BeEquivalentTo(shouldBeJson);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_Beginning()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "0", "2", "3" } };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":\"1\",\"path\":\"/values/0\",\"op\":\"replace\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_End()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "1", "2", "03" } };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":\"3\",\"path\":\"/values/2\",\"op\":\"replace\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_Middle()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "1", "02", "3" } };
+
+            var b = new CollectionClass { Values = new List<string> { "1", "2", "3" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(1);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            json.Should().BeEquivalentTo("[{\"value\":\"2\",\"path\":\"/values/1\",\"op\":\"replace\"}]");
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Sorting()
+        {
+            //arrange
+            var a = new CollectionClass { Values = new List<string> { "grape", "apple", "orange" } };
+
+            var b = new CollectionClass { Values = new List<string> { "apple", "grape", "orange" } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Operations.Should().HaveCount(2);
+            patch.ValuesShouldNotContainJson();
+
+            var json = JsonConvert.SerializeObject(patch.Operations);
+            const string expectedJson =
+                "[{\"value\":\"apple\",\"path\":\"/values/0\",\"op\":\"replace\"},{\"value\":\"grape\",\"path\":\"/values/1\",\"op\":\"replace\"}]";
+            expectedJson.Should().BeEquivalentTo(json);
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Replace_Null_With_Object()
+        {
+            //arrange
+            var a = new Agent { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = null };
+
+            var b = new Agent { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = new Believer { WantsToBelieve = true } };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+
+            var patchJson = JsonConvert.SerializeObject(patch);
+            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Believer\",\"op\":\"replace\"}]";
+            patchJson.Should().BeEquivalentTo(expectedJson);
+
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Generate_Empty_Patch()
+        {
+            //arrange
+            var a = new Agent { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = null };
+
+            var b = new Agent { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = null };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+            patch.Operations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List()
+        {
+            //arrange
+            var a = new CollectionClass<Agent> { Values = new List<Agent>() };
+
+            var b = new CollectionClass<Agent>
+            {
+                Values = new List<Agent> { new() { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = null } }
+            };
+
+            //act
+            var patch = CreateGenerator().Generate(a, b);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List_With_Custom_Settings()
+        {
+            //arrange
+            var serializerSettings = CreateCustomSettings();
+
+            var a = new CollectionClass<Agent> { Values = new List<Agent>() };
+
+            var b = new CollectionClass<Agent>
+            {
+                Values = new List<Agent> { new() { FirstName = "Dana", LastName = "Scully", Email = "dscully@fbi.gov", Believer = null } }
+            };
+
+            //act
+            var patch = CreateGenerator(serializerSettings).Generate(a, b, serializerSettings);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        [TestMethod]
+        public void Json_Patch_Document_Generator_Should_Handle_Collection_Complex_Object_Change_With_Custom_Settings()
+        {
+            //arrange
+            var serializerSettings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore, TypeNameHandling = TypeNameHandling.Objects
+            };
+
+            var a = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Cases = new List<Case> { new() { Subject = "Flukeman", AssignedAgent = new() { FirstName = "Dana", LastName = "Scully" } } }
+            };
+
+            var b = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                Cases = new List<Case>
+                {
+                    new()
+                    {
+                        Subject = "Flukeman",
+                        AssignedAgent = new() { FirstName = "Dana", LastName = "Scully", Email = "d@gov.com", Believer = new(true) }
+                    }
+                }
+            };
+
+            //act
+            var patch = CreateGenerator(serializerSettings).Generate(a, b, serializerSettings);
+
+            //assert
+            patch.Should().NotBeNull();
+            patch.ValuesShouldNotContainJson();
+            patch.Operations.Should().NotBeEmpty();
+            patch.ApplyTo(a);
+            a.Should().BeEquivalentTo(b);
+        }
+
+        private static JsonSerializerSettings CreateCustomSettings()
+        {
+            var serializerSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore
+            };
+
+            serializerSettings.Converters.Add(new StringEnumConverter());
+            serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
+
+            serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
+            serializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+            serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
+
+            serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
+            return serializerSettings;
+        }
+
         private class Agent
         {
             public string FirstName { get; set; }
@@ -29,16 +602,14 @@ namespace Firebend.JsonPatch.Tests
 
         private class Believer
         {
-            public bool WantsToBelieve { get; set; }
-
-            public string CatchPhrase { get; set; }
-
             public Believer() { }
 
             public Believer(bool wantsToBelieve)
             {
                 WantsToBelieve = wantsToBelieve;
             }
+
+            public bool WantsToBelieve { get; set; }
         }
 
         private class Case
@@ -74,754 +645,6 @@ namespace Firebend.JsonPatch.Tests
             public string[] Values { get; set; }
         }
 
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Generate_Patch()
-        {
-            //arrange
-            var a = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Remove = "get it outta here!",
-                BirthDate = new DateTime(1964, 2, 22),
-                Cases = new List<Case>
-                {
-                    new()
-                    {
-                        Subject = "Flukeman"
-                    },
-                    new()
-                    {
-                        Subject = "Wayne Weinseider"
-                    }
-                },
-                KnownAddresses = new List<Address>
-                {
-                    new()
-                    {
-                        City = "Here",
-                        State = "XX",
-                        Street = "Fake 123 Street"
-
-                    },
-                    new()
-                    {
-                        City = "There",
-                        State = "YY",
-                        Street = "Tester 123 Blvd"
-                    }
-                }
-            };
-
-            var b = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                BadgeNumber = "2317-616",
-                BirthDate = new DateTime(1964, 2, 23),
-                Cases = new List<Case>
-                {
-                    new()
-                    {
-                        Subject = "Flukeman",
-                    },
-                    new()
-                    {
-                        Subject = "Wayne Weinseider",
-                        Solved = true,
-                        SolvedDate = new DateTime(1999, 1, 3)
-                    },
-                    new()
-                    {
-                        Subject = "Eddie Van Blundht Jr"
-                    },
-                    new()
-                    {
-                        Subject = "The Peacock Family"
-                    }
-                },
-                KnownAddresses = new List<Address>
-                {
-                    new()
-                    {
-                        City = "There",
-                        State = "YY",
-                        Street = "Tester 123 Blvd"
-                    }
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-
-            var patchDeserializedOperations = patch.Operations;
-
-            var expectedOperations = new List<Microsoft.AspNetCore.JsonPatch.Operations.Operation>
-            {
-                new()
-                {
-                    from = null,
-                    op = "remove",
-                    path = "/Remove",
-                    value = null
-                },
-                new()
-                {
-                    from = null,
-                    op = "add",
-                    path = "/BadgeNumber",
-                    value = "2317-616"
-                },
-                new()
-                {
-                    from = null,
-                    op = "replace",
-                    path = "/BirthDate",
-                    value = new DateTime(1964, 2, 23).ToString(CultureInfo.CurrentCulture)
-                },
-                new()
-                {
-                    from = null,
-                    op = "add",
-                    path = "/Cases/1/Solved",
-                    value = "True"
-                },
-                new()
-                {
-                    from = null,
-                    op = "add",
-                    path = "/Cases/1/SolvedDate",
-                    value = new DateTime(1999, 1, 3).ToString(CultureInfo.CurrentCulture)
-                },
-                new()
-                {
-                    from = null,
-                    op = "add",
-                    path = "/Cases/-",
-                    value = new Case
-                    {
-                        Subject = "Eddie Van Blundht Jr",
-                        Solved = false,
-                        SolvedDate = DateTime.MinValue
-                    }
-                },
-                new()
-                {
-                    //6
-                    from = null,
-                    op = "add",
-                    path = "/Cases/-",
-                    value = new Case
-                    {
-                        Subject = "The Peacock Family",
-                        Solved = false,
-                        SolvedDate = DateTime.MinValue
-                    }
-                },
-                new()
-                {
-                    from = null,
-                    op = "replace",
-                    path = "/KnownAddresses/0/Street",
-                    value = "Tester 123 Blvd"
-                },
-                new()
-                {
-                    from = null,
-                    op = "replace",
-                    path = "/KnownAddresses/0/City",
-                    value = "There"
-                },
-                new()
-                {
-                    from = null,
-                    op = "replace",
-                    path = "/KnownAddresses/0/State",
-                    value = "YY"
-                },
-                new()
-                {
-                    from = null,
-                    op = "remove",
-                    path = "/KnownAddresses/1",
-                    value = null
-                }
-            };
-
-            patchDeserializedOperations.Should().BeEquivalentTo(expectedOperations);
-
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Item()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1", "2" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Item_Object()
-        {
-            //arrange
-            var a = new CollectionClass<Believer>
-            {
-                Values = new List<Believer> { new(), new(true), new(true) }
-            };
-
-            var b = new CollectionClass<Believer>
-            {
-                Values = new List<Believer> { new(), new(true) }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/2\",\"op\":\"remove\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Remove_Many_Items()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3", "4", "5" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(4);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"path\":\"/values/4\",\"op\":\"remove\"},{\"path\":\"/values/3\",\"op\":\"remove\"},{\"path\":\"/values/2\",\"op\":\"remove\"},{\"path\":\"/values/1\",\"op\":\"remove\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Many_Items()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3", "4", "5" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(4);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"4\",\"path\":\"/values/-\",\"op\":\"add\"},{\"value\":\"5\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1", "2" }
-            };
-
-            var b = new CollectionClass
-            {
-
-                Values = new List<string> { "1", "2", "3" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Add_Item_Object()
-        {
-            //arrange
-            var a = new CollectionClass<Believer>
-            {
-                Values = new List<Believer> { new(), new(true) }
-            };
-
-            var b = new CollectionClass<Believer>
-            {
-                Values = new List<Believer> { new(), new(true), new(true) }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/-\",\"op\":\"add\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Null_Array_Replace_With_Array()
-        {
-            //arrange
-            var a = new CollectionClassArray { Values = null };
-
-
-            var b = new CollectionClassArray
-            {
-                Values = new[]
-                {
-                    "1",
-                    "2",
-                    "3"
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"add\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Null_List_Replace_With_List_Object()
-        {
-            //arrange
-            var a = new CollectionClass<Believer> { Values = null };
-
-
-            var b = new CollectionClass<Believer>
-            {
-                Values = new List<Believer>
-                {
-                    new(),
-                    new (true),
-                    new(true)
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson =
-                "[{\"value\":[{\"WantsToBelieve\":false,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null},{\"WantsToBelieve\":true,\"CatchPhrase\":null}],\"path\":\"/Values\",\"op\":\"add\"}]";
-            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List()
-        {
-            //arrange
-            var a = new CollectionClass { Values = new List<string>() };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string>
-                {
-                    "1",
-                    "2",
-                    "3"
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(3);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson = "[{\"value\":\"1\",\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":\"2\",\"path\":\"/Values/1\",\"op\":\"add\"},{\"value\":\"3\",\"path\":\"/Values/2\",\"op\":\"add\"}]";
-            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Replace_With_List_Object()
-        {
-            //arrange
-            var a = new CollectionClass<Believer> { Values = new List<Believer>() };
-
-            var b = new CollectionClass<Believer>
-            {
-                Values = new List<Believer>
-                {
-                    new(true),
-                    new()
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(2);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            const string shouldBeJson =
-                "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Values/0\",\"op\":\"add\"},{\"value\":{\"WantsToBelieve\":false,\"CatchPhrase\":null},\"path\":\"/Values/1\",\"op\":\"add\"}]";
-            json.EqualsIgnoreCaseAndWhitespace(shouldBeJson).Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_Beginning()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "0", "2", "3" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"1\",\"path\":\"/values/0\",\"op\":\"replace\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_End()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "03" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"3\",\"path\":\"/values/2\",\"op\":\"replace\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Array_Update_At_Middle()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "1", "02", "3" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "1", "2", "3" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(1);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"2\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Sorting()
-        {
-            //arrange
-            var a = new CollectionClass
-            {
-                Values = new List<string> { "grape", "apple", "orange" }
-            };
-
-            var b = new CollectionClass
-            {
-                Values = new List<string> { "apple", "grape", "orange" }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Operations.Should().HaveCount(2);
-            patch.ValuesShouldNotContainJson();
-
-            var json = JsonConvert.SerializeObject(patch.Operations);
-            json.EqualsIgnoreCaseAndWhitespace("[{\"value\":\"apple\",\"path\":\"/values/0\",\"op\":\"replace\"},{\"value\":\"grape\",\"path\":\"/values/1\",\"op\":\"replace\"}]").Should().BeTrue();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Replace_Null_With_Object()
-        {
-            //arrange
-            var a = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = null
-            };
-
-            var b = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = new Believer
-                {
-                    WantsToBelieve = true
-                }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-
-            var patchJson = JsonConvert.SerializeObject(patch);
-            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true,\"CatchPhrase\":null},\"path\":\"/Believer\",\"op\":\"add\"}]";
-            patchJson.EqualsIgnoreCaseAndWhitespace(expectedJson).Should().BeTrue();
-
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Generate_Empty_Patch()
-        {
-            //arrange
-            var a = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = null
-            };
-
-            var b = new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = null
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-            patch.Operations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List()
-        {
-            //arrange
-            var a = new CollectionClass<Agent>
-            {
-                Values = new List<Agent>()
-            };
-
-            var b = new CollectionClass<Agent>
-            {
-                Values = new List<Agent>{
-            new()
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = null
-            }}
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-            patch.Operations.Should().NotBeEmpty();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Empty_List_Of_Object_To_Populated_List_With_Custom_Settings()
-        {
-            //arrange
-            var serializerSettings = CreateCustomSettings();
-
-            var a = new CollectionClass<Agent>
-            {
-                Values = new List<Agent>()
-            };
-
-            var b = new CollectionClass<Agent>
-            {
-                Values = new List<Agent>{
-            new Agent
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Believer = null
-            }}
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b, serializerSettings);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-            patch.Operations.Should().NotBeEmpty();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
-        [TestMethod]
-        public void Json_Patch_Document_Generator_Should_Handle_Collection_Complex_Object_Change_With_Custom_Settings()
-        {
-            //arrange
-            var serializerSettings = new JsonSerializerSettings()
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore, TypeNameHandling = TypeNameHandling.Objects
-            };
-
-            var a = new Agent()
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Cases = new List<Case>() { new() { Subject = "Flukeman", AssignedAgent = new() { FirstName = "Dana", LastName = "Scully", } } }
-            };
-
-            var b = new Agent()
-            {
-                FirstName = "Dana",
-                LastName = "Scully",
-                Email = "dscully@fbi.gov",
-                Cases = new List<Case>() { new() { Subject = "Flukeman", AssignedAgent = new() { FirstName = "Dana", LastName = "Scully", Email = "d@gov.com", Believer = new (true)} } }
-            };
-
-            //act
-            var patch = new JsonPatchGenerator().Generate(a, b, serializerSettings);
-
-            //assert
-            patch.Should().NotBeNull();
-            patch.ValuesShouldNotContainJson();
-            patch.Operations.Should().NotBeEmpty();
-            patch.ApplyTo(a);
-            a.Should().BeEquivalentTo(b);
-        }
-
         public class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
         {
             protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
@@ -832,27 +655,6 @@ namespace Firebend.JsonPatch.Tests
 
                 return contract;
             }
-        }
-
-        private static JsonSerializerSettings CreateCustomSettings()
-        {
-            var serializerSettings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
-            };
-
-            serializerSettings.Converters.Add(new StringEnumConverter());
-            serializerSettings.ContractResolver = new CamelCaseExceptDictionaryKeysResolver();
-
-            serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
-            serializerSettings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
-            serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
-
-            serializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
-            return serializerSettings;
         }
     }
 }

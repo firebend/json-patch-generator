@@ -17,15 +17,15 @@ public class JsonPatchGenerator : IJsonPatchGenerator
     ///     Generates a JsonPatchDocument by comparing two objects.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="a">The original object</param>
-    /// <param name="b">The modified object</param>
+    /// <param name="original">The original object</param>
+    /// <param name="modified">The modified object</param>
     /// <returns>The <see cref="JsonPatchDocument" /></returns>
-    public JsonPatchDocument<T> Generate<T>(T a, T b, JsonSerializerSettings settings = null)
+    public JsonPatchDocument<T> Generate<T>(T original, T modified, JsonSerializerSettings settings = null)
         where T : class
     {
         var output = new JsonPatchDocument<T>();
 
-        if (ReferenceEquals(a, b))
+        if (ReferenceEquals(original, modified))
         {
             return output;
         }
@@ -34,10 +34,10 @@ public class JsonPatchGenerator : IJsonPatchGenerator
 
         var jsonSerializer = JsonSerializer.Create(settings);
 
-        var originalJson = JObject.FromObject(a, jsonSerializer);
-        var modifiedJson = JObject.FromObject(b, jsonSerializer);
+        var originalJson = JObject.FromObject(original, jsonSerializer);
+        var modifiedJson = JObject.FromObject(modified, jsonSerializer);
 
-        var propertyInfos = GetPropertyInfos(b.GetType());
+        var propertyInfos = GetPropertyInfos(modified.GetType());
 
         FillJsonPatchValues(originalJson, modifiedJson, output, propertyInfos);
 
@@ -54,17 +54,6 @@ public class JsonPatchGenerator : IJsonPatchGenerator
 
         foreach (var prop in properties)
         {
-            var path = $"{currentPath}{prop.Name}";
-
-            if (dictionaryProps.ContainsKey(path))
-            {
-                continue;
-            }
-            dictionaryProps[path] = prop;
-        }
-
-        foreach (var prop in properties)
-        {
             var path = $"{currentPath}{prop.Name}/";
 
             if (prop.PropertyType.IsCollection())
@@ -74,6 +63,10 @@ public class JsonPatchGenerator : IJsonPatchGenerator
             else if (prop.PropertyType.IsObject())
             {
                 GetPropertyInfos(prop.PropertyType, path, dictionaryProps);
+            }
+            else
+            {
+                dictionaryProps[path] = prop;
             }
         }
 
