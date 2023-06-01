@@ -2,10 +2,19 @@ namespace Firebend.JsonPatch.Models;
 
 public class JsonDiff
 {
+    /// <summary>
+    /// The field path for the json patch diff
+    /// </summary>
     public string Path { get; set; }
 
+    /// <summary>
+    /// The value the path should be changed to
+    /// </summary>
     public object Value { get; set; }
 
+    /// <summary>
+    /// Which kind of json patch operation happened
+    /// </summary>
     public JsonChange Change { get; set; }
 
     public JsonDiff(string path, object value, JsonChange change)

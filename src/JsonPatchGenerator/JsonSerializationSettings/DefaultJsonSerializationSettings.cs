@@ -6,6 +6,15 @@ public static class DefaultJsonSerializationSettings
 {
     public static JsonSerializerSettings Settings = Configure();
 
+    /// <summary>
+    /// Configures default settings for this json patch generating library
+    /// </summary>
+    /// <param name="serializerSettings">
+    /// Any settings that could have been preconfigured.
+    /// </param>
+    /// <returns>
+    /// The settings with defaults applied.
+    /// </returns>
     public static JsonSerializerSettings Configure(JsonSerializerSettings serializerSettings = null)
     {
         serializerSettings ??= new JsonSerializerSettings();

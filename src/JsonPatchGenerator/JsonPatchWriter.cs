@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using Firebend.JsonPatch.Interfaces;
@@ -8,20 +9,58 @@ namespace Firebend.JsonPatch;
 
 public class JsonPatchWriter : IJsonPatchWriter
 {
-    private readonly StringBuilder _stringBuilder;
-    private readonly JsonWriter _writer;
+    private bool _isOpen;
+    private StringBuilder _stringBuilder;
+    private StringWriter _stringWriter;
+    private JsonWriter _writer;
 
-    public JsonPatchWriter()
+    public void WriteAdd(string path, object value)
+        => WriteOperation(path, "add", value);
+
+    public void WriteReplace(string path, object value)
+        => WriteOperation(path, "replace", value);
+
+    public void WriteRemove(string path)
+        => WriteOperation(path, "remove", null);
+
+    public string Finish()
     {
-        _stringBuilder = new StringBuilder();
-        _writer = new JsonTextWriter(new StringWriter(_stringBuilder));
-        _writer.CloseOutput = true;
-        _writer.AutoCompleteOnClose = true;
-        _writer.WriteStartArray();
+        _writer?.WriteEndArray();
+        _writer?.Close();
+        _stringWriter?.Close();
+        _isOpen = false;
+        return _stringBuilder?.ToString();
     }
 
-    private void WriteOperation(string path, string operation, object value)
+    public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Open()
+    {
+        _stringBuilder = new StringBuilder();
+        _stringWriter = new StringWriter(_stringBuilder);
+        _writer = new JsonTextWriter(_stringWriter);
+        _writer.CloseOutput = false;
+        _writer.AutoCompleteOnClose = false;
+        _writer.WriteStartArray();
+        _isOpen = true;
+    }
+
+    protected virtual void WriteOperation(string path, string operation, object value)
+    {
+        if (_isOpen is false)
+        {
+            Open();
+        }
+
+        if (_writer is null)
+        {
+            return;
+        }
+
         _writer.WriteStartObject();
 
         _writer.WritePropertyName("op");
@@ -51,19 +90,18 @@ public class JsonPatchWriter : IJsonPatchWriter
         _writer.WriteEndObject();
     }
 
-    public void WriteAdd(string path, object value)
-        => WriteOperation(path, "add", value);
-
-    public void WriteReplace(string path, object value)
-        => WriteOperation(path, "replace", value);
-
-    public void WriteRemove(string path)
-        => WriteOperation(path, "remove", null);
-
-    public string Finish()
+    protected virtual void Dispose(bool disposing)
     {
-        _writer.WriteEndArray();
-        _writer.Close();
-        return _stringBuilder.ToString();
+        if (disposing)
+        {
+            _writer?.Close();
+            _stringWriter?.Dispose();
+            _stringBuilder?.Clear();
+        }
+    }
+
+    ~JsonPatchWriter()
+    {
+        Dispose(false);
     }
 }
