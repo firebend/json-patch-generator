@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Firebend.JsonPatch.Extensions;
+using Firebend.JsonPatch.Interfaces;
 using Firebend.JsonPatch.JsonSerializationSettings;
 using FluentAssertions;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -20,12 +22,9 @@ namespace Firebend.JsonPatch.Tests
     {
         private static IJsonPatchGenerator CreateGenerator(JsonSerializerSettings settings = null)
         {
-            settings ??= DefaultJsonSerializationSettings.Configure();
-
-            var settingsProvider = new JsonDiffSettingsProvider(settings);
-            var writer = new JsonPatchWriter();
-            var detector = new JsonDiffDetector(settingsProvider);
-            var generator = new DefaultJsonPatchGenerator(detector, writer, settingsProvider);
+            var serviceCollection = new ServiceCollection().AddJsonPatchGenerator(_ => settings ??= DefaultJsonSerializationSettings.Configure());
+            var provider = serviceCollection.BuildServiceProvider();
+            var generator = provider.GetRequiredService<IJsonPatchGenerator>();
             return generator;
         }
 

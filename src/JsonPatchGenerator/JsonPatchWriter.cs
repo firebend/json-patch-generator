@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using Firebend.JsonPatch.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

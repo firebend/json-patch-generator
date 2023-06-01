@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Firebend.JsonPatch.Models;
 
-namespace Firebend.JsonPatch;
+namespace Firebend.JsonPatch.Interfaces;
 
 public interface IJsonDiffDetector
 {

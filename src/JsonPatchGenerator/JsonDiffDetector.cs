@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Firebend.JsonPatch.Extensions;
+using Firebend.JsonPatch.Interfaces;
+using Firebend.JsonPatch.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

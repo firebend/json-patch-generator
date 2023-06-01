@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using Firebend.JsonPatch.Interfaces;
+using Firebend.JsonPatch.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Newtonsoft.Json;

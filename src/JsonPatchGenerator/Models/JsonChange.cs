@@ -1,4 +1,4 @@
-namespace Firebend.JsonPatch;
+namespace Firebend.JsonPatch.Models;
 
 public enum JsonChange
 {

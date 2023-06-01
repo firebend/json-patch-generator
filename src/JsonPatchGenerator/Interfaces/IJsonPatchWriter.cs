@@ -1,4 +1,4 @@
-namespace Firebend.JsonPatch;
+namespace Firebend.JsonPatch.Interfaces;
 
 public interface IJsonPatchWriter
 {
