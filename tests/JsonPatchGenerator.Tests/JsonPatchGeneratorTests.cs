@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Firebend.JsonPatch.Extensions;
+using Firebend.JsonPatch.JsonSerializationSettings;
 using FluentAssertions;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,7 +20,7 @@ namespace Firebend.JsonPatch.Tests
     {
         private static IJsonPatchGenerator CreateGenerator(JsonSerializerSettings settings = null)
         {
-            settings ??= new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Objects };
+            settings ??= DefaultJsonSerializationSettings.Configure();
 
             var settingsProvider = new JsonDiffSettingsProvider(settings);
             var writer = new JsonPatchWriter();
@@ -69,8 +71,6 @@ namespace Firebend.JsonPatch.Tests
             patch.Should().NotBeNull();
             patch.ValuesShouldNotContainJson();
 
-            var patchOperations = patch.Operations;
-
             var expectedOperations = new List<Operation>
             {
                 new() { from = null, op = "remove", path = "/Remove", value = null },
@@ -99,7 +99,22 @@ namespace Firebend.JsonPatch.Tests
                 new() { from = null, op = "remove", path = "/KnownAddresses/1", value = null }
             };
 
-            //patchOperations.Should().BeEquivalentTo(expectedOperations);
+            expectedOperations.Count.Should().Be(patch.Operations.Count);
+
+            foreach (var operation in patch.Operations)
+            {
+                var expected = expectedOperations.FirstOrDefault(x => x.path.EqualsIgnoreCaseAndWhitespace(operation.path) && x.op.EqualsIgnoreCaseAndWhitespace(operation.op));
+                expected.Should().NotBeNull("operation with path {0} and verb {1} should be in patch {2}", operation.path, operation.op, JsonConvert.SerializeObject(expectedOperations));
+
+                if (expected.value is null)
+                {
+                    operation.value.Should().BeNull();
+                }
+                else
+                {
+                    expected.value.ToString().Should().BeEquivalentTo(operation.value.ToString());
+                }
+            }
 
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
@@ -281,7 +296,7 @@ namespace Firebend.JsonPatch.Tests
             patch.ValuesShouldNotContainJson();
 
             var json = JsonConvert.SerializeObject(patch.Operations);
-            json.Should().BeEquivalentTo("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"replace\"}]");
+            json.Should().BeEquivalentTo("[{\"value\":[\"1\",\"2\",\"3\"],\"path\":\"/Values\",\"op\":\"add\"}]");
             patch.ApplyTo(a);
             a.Should().BeEquivalentTo(b);
         }
@@ -453,7 +468,7 @@ namespace Firebend.JsonPatch.Tests
             patch.ValuesShouldNotContainJson();
 
             var patchJson = JsonConvert.SerializeObject(patch);
-            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Believer\",\"op\":\"replace\"}]";
+            const string expectedJson = "[{\"value\":{\"WantsToBelieve\":true},\"path\":\"/Believer\",\"op\":\"add\"}]";
             patchJson.Should().BeEquivalentTo(expectedJson);
 
             patch.ApplyTo(a);

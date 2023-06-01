@@ -14,6 +14,7 @@ public static class DefaultJsonSerializationSettings
         serializerSettings.DefaultValueHandling = DefaultValueHandling.Ignore;
         serializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
         serializerSettings.Formatting = Formatting.None;
+        serializerSettings.TypeNameHandling = TypeNameHandling.Objects;
 
         return serializerSettings;
     }

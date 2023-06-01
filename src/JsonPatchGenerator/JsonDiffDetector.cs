@@ -46,8 +46,8 @@ public class JsonDiffDetector : IJsonDiffDetector
         IEnumerable<string> originalPropertyNames,
         IEnumerable<string> modifiedPropertyNames,
         JObject modified) => diffs
-        .AddRange(originalPropertyNames
-            .Except(modifiedPropertyNames)
+        .AddRange(modifiedPropertyNames
+            .Except(originalPropertyNames)
             .Select(propName => JsonDiff.Add($"{currentPath}/{propName}", modified.Property(propName)?.Value)));
 
     private static void DetectRemovedProperties(string currentPath,
@@ -76,6 +76,12 @@ public class JsonDiffDetector : IJsonDiffDetector
                 continue;
             }
 
+            if (modifiedProp.Value.Type == JTokenType.Null)
+            {
+                jsonDiffs.Add(JsonDiff.Remove($"{currentPath}/{modifiedProp.Name}"));
+                continue;
+            }
+
             if (originalProp.Value.ToString(Formatting.None).EqualsIgnoreCaseAndWhitespace(modifiedProp.Value.ToString(Formatting.None)))
             {
                 continue;
@@ -87,27 +93,26 @@ public class JsonDiffDetector : IJsonDiffDetector
                 continue;
             }
 
-            if (originalProp.Value.Type == JTokenType.Object)
+            switch (originalProp.Value.Type)
             {
-                DetectChangesRecursion(originalProp.Value as JObject,
-                    modifiedProp.Value as JObject,
-                    jsonDiffs,
-                    $"{currentPath}/{propName}");
+                case JTokenType.Object:
+                    DetectChangesRecursion(originalProp.Value as JObject,
+                        modifiedProp.Value as JObject,
+                        jsonDiffs,
+                        $"{currentPath}/{propName}");
 
-                continue;
+                    continue;
+                case JTokenType.Array:
+                    DetectArrayChanges(originalProp.Value as JArray,
+                        modifiedProp.Value as JArray,
+                        jsonDiffs,
+                        $"{currentPath}/{propName}");
+
+                    continue;
+                default:
+                    jsonDiffs.Add(JsonDiff.Replace($"{currentPath}/{propName}", modifiedProp.Value));
+                    break;
             }
-
-            if (originalProp.Value.Type == JTokenType.Array)
-            {
-                DetectArrayChanges(originalProp.Value as JArray,
-                    modifiedProp.Value as JArray,
-                    jsonDiffs,
-                    $"{currentPath}/{propName}");
-
-                continue;
-            }
-
-            jsonDiffs.Add(JsonDiff.Replace($"{currentPath}/{propName}", modifiedProp.Value));
         }
     }
 
