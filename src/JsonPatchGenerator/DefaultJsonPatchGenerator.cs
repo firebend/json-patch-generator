@@ -6,19 +6,19 @@ using Newtonsoft.Json;
 
 namespace Firebend.JsonPatch;
 
-public class NewJsonPatchGenerator : IJsonPatchGenerator
+public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 {
     private readonly IJsonDiffDetector _diffDetector;
     private readonly IJsonPatchWriter _writer;
     private readonly IJsonDiffSettingsProvider _settings;
-    public NewJsonPatchGenerator(IJsonDiffDetector diffDetector, IJsonPatchWriter writer, IJsonDiffSettingsProvider settings)
+    public DefaultJsonPatchGenerator(IJsonDiffDetector diffDetector, IJsonPatchWriter writer, IJsonDiffSettingsProvider settings)
     {
         _diffDetector = diffDetector;
         _writer = writer;
         _settings = settings;
     }
 
-    public JsonPatchDocument<T> Generate<T>(T original, T modified, JsonSerializerSettings settings = null)
+    public JsonPatchDocument<T> Generate<T>(T original, T modified)
         where T : class
     {
         if (original is null)

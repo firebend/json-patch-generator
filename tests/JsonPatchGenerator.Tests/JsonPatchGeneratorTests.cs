@@ -25,7 +25,7 @@ namespace Firebend.JsonPatch.Tests
             var settingsProvider = new JsonDiffSettingsProvider(settings);
             var writer = new JsonPatchWriter();
             var detector = new JsonDiffDetector(settingsProvider);
-            var generator = new NewJsonPatchGenerator(detector, writer, settingsProvider);
+            var generator = new DefaultJsonPatchGenerator(detector, writer, settingsProvider);
             return generator;
         }
 
@@ -106,7 +106,7 @@ namespace Firebend.JsonPatch.Tests
                 var expected = expectedOperations.FirstOrDefault(x => x.path.EqualsIgnoreCaseAndWhitespace(operation.path) && x.op.EqualsIgnoreCaseAndWhitespace(operation.op));
                 expected.Should().NotBeNull("operation with path {0} and verb {1} should be in patch {2}", operation.path, operation.op, JsonConvert.SerializeObject(expectedOperations));
 
-                if (expected.value is null)
+                if (expected!.value is null)
                 {
                     operation.value.Should().BeNull();
                 }
@@ -528,7 +528,7 @@ namespace Firebend.JsonPatch.Tests
             };
 
             //act
-            var patch = CreateGenerator(serializerSettings).Generate(a, b, serializerSettings);
+            var patch = CreateGenerator(serializerSettings).Generate(a, b);
 
             //assert
             patch.Should().NotBeNull();
@@ -571,7 +571,7 @@ namespace Firebend.JsonPatch.Tests
             };
 
             //act
-            var patch = CreateGenerator(serializerSettings).Generate(a, b, serializerSettings);
+            var patch = CreateGenerator(serializerSettings).Generate(a, b);
 
             //assert
             patch.Should().NotBeNull();
@@ -660,7 +660,7 @@ namespace Firebend.JsonPatch.Tests
             public string[] Values { get; set; }
         }
 
-        public class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
+        private class CamelCaseExceptDictionaryKeysResolver : CamelCasePropertyNamesContractResolver
         {
             protected override JsonDictionaryContract CreateDictionaryContract(Type objectType)
             {
