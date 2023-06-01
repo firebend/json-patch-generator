@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.JsonPatch;
-using Newtonsoft.Json;
 
-namespace Firebend.JsonPatch;
+namespace Firebend.JsonPatch.Interfaces;
 
 public interface IJsonPatchGenerator
 {
-    JsonPatchDocument<T> Generate<T>(T a, T b, JsonSerializerSettings settings = null)
+    JsonPatchDocument<T> Generate<T>(T original, T modified)
         where T : class;
 
     JsonPatchDocument ConvertFromGeneric<T>(JsonPatchDocument<T> patch) where T : class;
