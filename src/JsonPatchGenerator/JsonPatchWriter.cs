@@ -29,7 +29,13 @@ public class JsonPatchWriter : IJsonPatchWriter
         _writer?.Close();
         _stringWriter?.Close();
         _isOpen = false;
-        return _stringBuilder?.ToString();
+
+        var result = _stringBuilder?.ToString();
+        _stringBuilder?.Clear();
+        _writer = null;
+        _stringWriter = null;
+
+        return result;
     }
 
     public void Dispose()

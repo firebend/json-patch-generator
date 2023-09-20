@@ -580,6 +580,45 @@ namespace Firebend.JsonPatch.Tests
             a.Should().BeEquivalentTo(b);
         }
 
+        [TestMethod]
+        public void Json_Patch_Generator_Should_Handle_Multiple_Generations()
+        {
+            var serializerSettings = CreateCustomSettings();
+
+            var a = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+            };
+
+            var b = new Agent
+            {
+                FirstName = "Laura",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+            };
+
+            var c = new Agent
+            {
+                FirstName = "Dana",
+                LastName = "Scully",
+                Email = "dscully@fbi.gov",
+                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+            };
+
+            //act
+            var gen = CreateGenerator(serializerSettings);
+            var patchWithChanges = gen.Generate(a, b);
+            var patchWithNoChanges = gen.Generate(a, c);
+
+            //assert
+            patchWithChanges.Operations.Should().NotBeNullOrEmpty();
+            patchWithNoChanges.Operations.Should().BeEmpty();
+        }
+
         private static JsonSerializerSettings CreateCustomSettings()
         {
             var serializerSettings = new JsonSerializerSettings
