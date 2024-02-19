@@ -21,10 +21,8 @@ public class JsonDiffDetector : IJsonDiffDetector
 
     private JsonSerializer Serializer => _serializer ??= JsonSerializer.Create(_settings.Get());
 
-    public List<JsonDiff> DetectChanges(object original, object modified) => DetectChangesRecursion(GetJObject(original),
-        GetJObject(modified),
-        new List<JsonDiff>(),
-        string.Empty);
+    public List<JsonDiff> DetectChanges(object original, object modified)
+        => DetectChangesRecursion(GetJObject(original), GetJObject(modified), [], string.Empty);
 
     private JObject GetJObject(object a) => JObject.FromObject(a, Serializer);
 
@@ -47,16 +45,16 @@ public class JsonDiffDetector : IJsonDiffDetector
         List<JsonDiff> diffs,
         IEnumerable<string> originalPropertyNames,
         IEnumerable<string> modifiedPropertyNames,
-        JObject modified) => diffs
-        .AddRange(modifiedPropertyNames
+        JObject modified)
+        => diffs.AddRange(modifiedPropertyNames
             .Except(originalPropertyNames)
             .Select(propName => JsonDiff.Add($"{currentPath}/{propName}", modified.Property(propName)?.Value)));
 
     private static void DetectRemovedProperties(string currentPath,
         List<JsonDiff> diffs,
         IEnumerable<string> originalPropertyNames,
-        IEnumerable<string> modifiedPropertyNames) => diffs
-        .AddRange(originalPropertyNames
+        IEnumerable<string> modifiedPropertyNames)
+        => diffs.AddRange(originalPropertyNames
             .Except(modifiedPropertyNames)
             .Select(propName => $"{currentPath}/{propName}")
             .Select(JsonDiff.Remove));

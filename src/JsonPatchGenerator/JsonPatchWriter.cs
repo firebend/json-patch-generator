@@ -48,9 +48,11 @@ public class JsonPatchWriter : IJsonPatchWriter
     {
         _stringBuilder = new StringBuilder();
         _stringWriter = new StringWriter(_stringBuilder);
-        _writer = new JsonTextWriter(_stringWriter);
-        _writer.CloseOutput = false;
-        _writer.AutoCompleteOnClose = false;
+        _writer = new JsonTextWriter(_stringWriter)
+        {
+            CloseOutput = false,
+            AutoCompleteOnClose = false
+        };
         _writer.WriteStartArray();
         _isOpen = true;
     }

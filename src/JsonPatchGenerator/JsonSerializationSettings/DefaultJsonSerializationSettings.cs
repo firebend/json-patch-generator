@@ -4,7 +4,10 @@ namespace Firebend.JsonPatch.JsonSerializationSettings;
 
 public static class DefaultJsonSerializationSettings
 {
+#pragma warning disable IDE1006
+    // ReSharper disable once InconsistentNaming
     public static JsonSerializerSettings Settings = Configure();
+#pragma warning restore IDE1006
 
     /// <summary>
     /// Configures default settings for this json patch generating library

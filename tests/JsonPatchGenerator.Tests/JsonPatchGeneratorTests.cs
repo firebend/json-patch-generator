@@ -543,7 +543,8 @@ namespace Firebend.JsonPatch.Tests
             //arrange
             var serializerSettings = new JsonSerializerSettings
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore, TypeNameHandling = TypeNameHandling.Objects
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                TypeNameHandling = TypeNameHandling.Objects
             };
 
             var a = new Agent
@@ -590,7 +591,7 @@ namespace Firebend.JsonPatch.Tests
                 FirstName = "Dana",
                 LastName = "Scully",
                 Email = "dscully@fbi.gov",
-                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+                BirthDate = new DateTime(1987, 1, 1, 14, 20, 15),
             };
 
             var b = new Agent
@@ -598,7 +599,7 @@ namespace Firebend.JsonPatch.Tests
                 FirstName = "Laura",
                 LastName = "Scully",
                 Email = "dscully@fbi.gov",
-                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+                BirthDate = new DateTime(1987, 1, 1, 14, 20, 15),
             };
 
             var c = new Agent
@@ -606,7 +607,7 @@ namespace Firebend.JsonPatch.Tests
                 FirstName = "Dana",
                 LastName = "Scully",
                 Email = "dscully@fbi.gov",
-                BirthDate = new DateTime(1987, 1,1, 14, 20, 15),
+                BirthDate = new DateTime(1987, 1, 1, 14, 20, 15),
             };
 
             //act

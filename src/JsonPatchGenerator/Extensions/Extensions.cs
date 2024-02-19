@@ -11,7 +11,7 @@ public static class Extensions
 
     public static TOut Clone<TOut>(this object source, JsonSerializerSettings settings = null)
     {
-        if (ReferenceEquals(source, null))
+        if (source is null)
         {
             return default;
         }

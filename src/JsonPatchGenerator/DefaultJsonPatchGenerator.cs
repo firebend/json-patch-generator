@@ -76,8 +76,8 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
     public JsonPatchDocument ConvertFromGeneric<T>(JsonPatchDocument<T> patch) where T : class
     {
         var genericOperations = patch
-            .Operations.
-            Select(x => new Operation { op = x.op, path = x.path, from = x.from, value = x.value })
+            .Operations
+            .Select(x => new Operation { op = x.op, path = x.path, from = x.from, value = x.value })
             .ToList();
 
         var newPatch = new JsonPatchDocument(genericOperations, patch.ContractResolver);
