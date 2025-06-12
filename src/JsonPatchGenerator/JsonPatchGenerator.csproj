@@ -6,6 +6,7 @@
     <AssemblyName>Firebend.JsonPatchGenerator</AssemblyName>
     <RootNamespace>Firebend.JsonPatch</RootNamespace>
     <LangVersion>default</LangVersion>
+    <Bumper>1</Bumper>
   </PropertyGroup>
 
   <PropertyGroup>
