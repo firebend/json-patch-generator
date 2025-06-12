@@ -35,29 +35,29 @@ jobs:
       run: echo "Skipping publishing. No release required."
 
     - name: Setup .NET
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 8.0.101
 
     - name: Restore dependencies
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       run: dotnet restore json-patch-generator.sln
 
     - name: Build
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       run: dotnet build json-patch-generator.sln --no-restore
 
     - name: Test
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       run: dotnet test json-patch-generator.sln --no-build --verbosity normal
 
     - name: Pack
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       run : dotnet pack **/*/JsonPatchGenerator.csproj --configuration Release -o out/pack
 
     - name: Publish
-      if: steps.versionize.outcome != 'success'
+      if: steps.versionize.outcome == 'success'
       run: dotnet nuget push ./out/pack/*.nupkg --api-key  ${{secrets.FIREBEND_NUGET_KEY}} --skip-duplicate --source https://api.nuget.org/v3/index.json
 
     - name: Push version changes
