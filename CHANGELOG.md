@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.5"></a>
+## [9.0.5](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.5) (2025-06-12)
+
+### Other
+
+* correct conditions for .NET setup, restore, build, test, pack, and publish steps ([#71](https://www.github.com/firebend/json-patch-generator/issues/71)) ([a831caa](https://www.github.com/firebend/json-patch-generator/commit/a831caa380b8084fec2eb88ebcc5374a0f882f63))
+
 <a name="9.0.4"></a>
 ## [9.0.4](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.4) (2025-06-12)
 
