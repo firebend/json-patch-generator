@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.7"></a>
+## [9.0.7](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.7) (2025-07-01)
+
+### Other
+
+* Bump FluentAssertions, MSTest.TestAdapter and MSTest.TestFramework ([#73](https://www.github.com/firebend/json-patch-generator/issues/73)) ([36d0076](https://www.github.com/firebend/json-patch-generator/commit/36d007629f8c449bd0c42cb4257f4684d901c030))
+
 <a name="9.0.6"></a>
 ## [9.0.6](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.6) (2025-06-12)
 
