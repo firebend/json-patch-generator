@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.8"></a>
+## [9.0.8](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.8) (2025-08-19)
+
+### Other
+
+* Bump FluentAssertions and 4 others ([#74](https://www.github.com/firebend/json-patch-generator/issues/74)) ([ccbe307](https://www.github.com/firebend/json-patch-generator/commit/ccbe307954e0b11befc85ba100fc5d6aa7eb6731))
+
 <a name="9.0.7"></a>
 ## [9.0.7](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.7) (2025-07-01)
 
