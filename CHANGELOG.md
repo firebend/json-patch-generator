@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.11"></a>
+## [9.0.11](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.11) (2025-09-02)
+
+### Other
+
+* Bump Microsoft.AspNetCore.JsonPatch from 9.0.7 to 9.0.8 ([#77](https://www.github.com/firebend/json-patch-generator/issues/77)) ([4eeeb0d](https://www.github.com/firebend/json-patch-generator/commit/4eeeb0db026f03279c368f4d5c9820c31be6cf4a))
+
 <a name="9.0.10"></a>
 ## [9.0.10](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.10) (2025-09-02)
 
