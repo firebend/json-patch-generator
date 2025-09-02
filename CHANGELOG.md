@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.9"></a>
+## [9.0.9](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.9) (2025-09-02)
+
+### Other
+
+* Bump Microsoft.Extensions.DependencyInjection from 9.0.7 to 9.0.8 ([#79](https://www.github.com/firebend/json-patch-generator/issues/79)) ([f9186d9](https://www.github.com/firebend/json-patch-generator/commit/f9186d980fddade6f89acb004b3f7ebaec1863eb))
+
 <a name="9.0.8"></a>
 ## [9.0.8](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.8) (2025-08-19)
 
