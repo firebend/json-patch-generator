@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.12"></a>
+## [9.0.12](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.12) (2025-09-10)
+
+### Other
+
+* use factory method for IJsonPatchWriter to ensure thread safety ([#80](https://www.github.com/firebend/json-patch-generator/issues/80)) ([8b58705](https://www.github.com/firebend/json-patch-generator/commit/8b5870535168c6ffc6c682d1adb46624acd14736))
+
 <a name="9.0.11"></a>
 ## [9.0.11](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.11) (2025-09-02)
 
