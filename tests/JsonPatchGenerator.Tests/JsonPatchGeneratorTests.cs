@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using System.Threading.Tasks;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
@@ -618,6 +619,41 @@ namespace Firebend.JsonPatch.Tests
             //assert
             patchWithChanges.Operations.Should().NotBeNullOrEmpty();
             patchWithNoChanges.Operations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task Json_Patch_Document_Generator_Should_Be_Thread_Safe()
+        {
+            //arrange
+            var generator = CreateGenerator();
+
+            var a1 = new Agent { FirstName = "A" };
+            var b1 = new Agent { FirstName = "B" };
+
+            var a2 = new Agent { LastName = "C" };
+            var b2 = new Agent { LastName = "D" };
+
+            //act
+            var task1 = Task.Run(() => generator.Generate(a1, b1));
+            var task2 = Task.Run(() => generator.Generate(a2, b2));
+
+            await Task.WhenAll(task1, task2);
+
+            //assert
+            var patch1 = await task1;
+            var patch2 = await task2;
+
+            patch1.Operations.Should().HaveCount(1);
+            var op1 = patch1.Operations[0];
+            op1.op.Should().Be("replace");
+            op1.path.Should().Be("/FirstName");
+            op1.value.Should().Be("B");
+
+            patch2.Operations.Should().HaveCount(1);
+            var op2 = patch2.Operations[0];
+            op2.op.Should().Be("replace");
+            op2.path.Should().Be("/LastName");
+            op2.value.Should().Be("D");
         }
 
         private static JsonSerializerSettings CreateCustomSettings()

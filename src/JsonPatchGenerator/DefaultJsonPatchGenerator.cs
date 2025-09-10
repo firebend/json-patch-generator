@@ -11,12 +11,12 @@ namespace Firebend.JsonPatch;
 public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 {
     private readonly IJsonDiffDetector _diffDetector;
-    private readonly IJsonPatchWriter _writer;
+    private readonly Func<IJsonPatchWriter> _writerFactory;
     private readonly IJsonDiffSettingsProvider _settings;
-    public DefaultJsonPatchGenerator(IJsonDiffDetector diffDetector, IJsonPatchWriter writer, IJsonDiffSettingsProvider settings)
+    public DefaultJsonPatchGenerator(IJsonDiffDetector diffDetector, Func<IJsonPatchWriter> writerFactory, IJsonDiffSettingsProvider settings)
     {
         _diffDetector = diffDetector;
-        _writer = writer;
+        _writerFactory = writerFactory;
         _settings = settings;
     }
 
@@ -40,6 +40,10 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 
         var diffs = _diffDetector.DetectChanges(original, modified);
 
+        if (!diffs.Any()) { return new(); }
+
+        var writer = _writerFactory();
+
         foreach (var jsonDiff in diffs)
         {
             switch (jsonDiff.Change)
@@ -47,20 +51,20 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
                 case JsonChange.Unknown:
                     break;
                 case JsonChange.Add:
-                    _writer.WriteAdd(jsonDiff.Path, jsonDiff.Value);
+                    writer.WriteAdd(jsonDiff.Path, jsonDiff.Value);
                     break;
                 case JsonChange.Replace:
-                    _writer.WriteReplace(jsonDiff.Path, jsonDiff.Value);
+                    writer.WriteReplace(jsonDiff.Path, jsonDiff.Value);
                     break;
                 case JsonChange.Remove:
-                    _writer.WriteRemove(jsonDiff.Path);
+                    writer.WriteRemove(jsonDiff.Path);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        var patchJson = _writer.Finish();
+        var patchJson = writer.Finish();
 
         if (string.IsNullOrWhiteSpace(patchJson))
         {

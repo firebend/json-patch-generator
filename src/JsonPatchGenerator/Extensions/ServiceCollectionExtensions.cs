@@ -46,7 +46,10 @@ public static class ServiceCollectionExtensions
 
         collection.TryAddSingleton<IJsonDiffSettingsProvider>(new JsonDiffSettingsProvider(settings));
         collection.TryAddTransient<IJsonPatchWriter, JsonPatchWriter>();
-        collection.TryAddTransient<IJsonPatchGenerator, DefaultJsonPatchGenerator>();
+        collection.TryAddTransient<IJsonPatchGenerator>(sp =>
+            new DefaultJsonPatchGenerator(sp.GetRequiredService<IJsonDiffDetector>(),
+                sp.GetRequiredService<IJsonPatchWriter>,
+                sp.GetRequiredService<IJsonDiffSettingsProvider>()));
         collection.TryAddTransient<IJsonDiffDetector, JsonDiffDetector>();
 
         return collection;
