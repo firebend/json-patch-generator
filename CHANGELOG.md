@@ -1,4 +1,11 @@
 Lit Redis Changelog
+<a name="9.0.13"></a>
+## [9.0.13](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.13) (2025-09-17)
+
+### Other
+
+* refactor DefaultJsonPatchGenerator to use IServiceProvider for IJsonPatchWriter instantiation ([#81](https://www.github.com/firebend/json-patch-generator/issues/81)) ([022175c](https://www.github.com/firebend/json-patch-generator/commit/022175c336870ae20c301414f01cb93063d55e23))
+
 <a name="9.0.12"></a>
 ## [9.0.12](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.12) (2025-09-10)
 
