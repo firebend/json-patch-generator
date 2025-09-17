@@ -4,6 +4,7 @@ using Firebend.JsonPatch.Interfaces;
 using Firebend.JsonPatch.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Firebend.JsonPatch;
@@ -11,12 +12,15 @@ namespace Firebend.JsonPatch;
 public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 {
     private readonly IJsonDiffDetector _diffDetector;
-    private readonly Func<IJsonPatchWriter> _writerFactory;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IJsonDiffSettingsProvider _settings;
-    public DefaultJsonPatchGenerator(IJsonDiffDetector diffDetector, Func<IJsonPatchWriter> writerFactory, IJsonDiffSettingsProvider settings)
+
+    public DefaultJsonPatchGenerator(IJsonDiffDetector diffDetector,
+        IServiceProvider serviceProvider,
+        IJsonDiffSettingsProvider settings)
     {
         _diffDetector = diffDetector;
-        _writerFactory = writerFactory;
+        _serviceProvider = serviceProvider;
         _settings = settings;
     }
 
@@ -42,7 +46,8 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 
         if (!diffs.Any()) { return new(); }
 
-        var writer = _writerFactory();
+        using var scope = _serviceProvider.CreateScope();
+        var writer = scope.ServiceProvider.GetRequiredService<IJsonPatchWriter>();
 
         foreach (var jsonDiff in diffs)
         {
