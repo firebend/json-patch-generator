@@ -21,7 +21,8 @@
 
   <!-- Packages that are versioned independently of the .NET release. -->
   <ItemGroup>
-    <PackageVersion Include="FluentAssertions" Version="8.11.0" />
+    <!-- FluentAssertions v8 requires a commercial license; stay on the latest v7. -->
+    <PackageVersion Include="FluentAssertions" Version="7.2.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="MSTest.TestAdapter" Version="4.5.1" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.5.1" />
