@@ -11,7 +11,7 @@ public interface IJsonPatchWriter
     /// <param name="value">
     /// The value added.
     /// </param>
-    void WriteAdd(string path, object value);
+    public void WriteAdd(string path, object value);
 
     /// <summary>
     /// Writes a json patch replace operation to the output.
@@ -22,7 +22,7 @@ public interface IJsonPatchWriter
     /// <param name="value">
     /// The value replaced.
     /// </param>
-    void WriteReplace(string path, object value);
+    public void WriteReplace(string path, object value);
 
     /// <summary>
     /// Writes a json remove operation to the output
@@ -30,7 +30,7 @@ public interface IJsonPatchWriter
     /// <param name="path">
     /// The json patch path
     /// </param>
-    void WriteRemove(string path);
+    public void WriteRemove(string path);
 
     /// <summary>
     /// Finishes writing the json patch document and returns it as a string
@@ -38,5 +38,5 @@ public interface IJsonPatchWriter
     /// <returns>
     /// A json patch in string form.
     /// </returns>
-    string Finish();
+    public string Finish();
 }

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks>$(FirebendTargetFrameworks)</TargetFrameworks>
     <Version>9.0.13</Version>
     <AssemblyName>Firebend.JsonPatchGenerator</AssemblyName>
     <RootNamespace>Firebend.JsonPatch</RootNamespace>
@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
 
 </Project>

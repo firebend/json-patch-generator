@@ -20,7 +20,7 @@ public interface IJsonPatchGenerator
     /// <returns>
     /// A <see cref="JsonPatchDocument{TModel}"/> representing the changes in the two objects.
     /// </returns>
-    JsonPatchDocument<T> Generate<T>(T original, T modified) where T : class;
+    public JsonPatchDocument<T> Generate<T>(T original, T modified) where T : class;
 
     /// <summary>
     /// Converts a <see cref="JsonPatchDocument{TModel}"/> and converts it to the non-generic <see cref="JsonPatchDocument"/>
@@ -34,5 +34,5 @@ public interface IJsonPatchGenerator
     /// <returns>
     /// A <see cref="JsonPatchDocument"/>
     /// </returns>
-    JsonPatchDocument ConvertFromGeneric<T>(JsonPatchDocument<T> patch) where T : class;
+    public JsonPatchDocument ConvertFromGeneric<T>(JsonPatchDocument<T> patch) where T : class;
 }

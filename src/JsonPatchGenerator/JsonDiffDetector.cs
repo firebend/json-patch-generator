@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Firebend.JsonPatch.Extensions;
@@ -10,16 +11,14 @@ namespace Firebend.JsonPatch;
 
 public class JsonDiffDetector : IJsonDiffDetector
 {
-    private readonly IJsonDiffSettingsProvider _settings;
-
-    private JsonSerializer _serializer;
+    private readonly Lazy<JsonSerializer> _serializer;
 
     public JsonDiffDetector(IJsonDiffSettingsProvider settings)
     {
-        _settings = settings;
+        _serializer = new Lazy<JsonSerializer>(() => JsonSerializer.Create(settings.Get()));
     }
 
-    private JsonSerializer Serializer => _serializer ??= JsonSerializer.Create(_settings.Get());
+    private JsonSerializer Serializer => _serializer.Value;
 
     public List<JsonDiff> DetectChanges(object original, object modified)
         => DetectChangesRecursion(GetJObject(original), GetJObject(modified), [], string.Empty);

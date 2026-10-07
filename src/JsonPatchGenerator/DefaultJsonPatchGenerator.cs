@@ -44,7 +44,10 @@ public class DefaultJsonPatchGenerator : IJsonPatchGenerator
 
         var diffs = _diffDetector.DetectChanges(original, modified);
 
-        if (!diffs.Any()) { return new(); }
+        if (!diffs.Any())
+        {
+            return new();
+        }
 
         using var scope = _serviceProvider.CreateScope();
         var writer = scope.ServiceProvider.GetRequiredService<IJsonPatchWriter>();

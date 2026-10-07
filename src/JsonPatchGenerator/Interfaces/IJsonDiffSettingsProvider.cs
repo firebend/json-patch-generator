@@ -4,5 +4,5 @@ namespace Firebend.JsonPatch.Interfaces;
 
 public interface IJsonDiffSettingsProvider
 {
-    JsonSerializerSettings Get();
+    public JsonSerializerSettings Get();
 }
