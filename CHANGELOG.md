@@ -1,4 +1,4 @@
-Lit Redis Changelog
+Json Patch Generator Changelog
 <a name="9.0.13"></a>
 ## [9.0.13](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.13) (2025-09-17)
 
