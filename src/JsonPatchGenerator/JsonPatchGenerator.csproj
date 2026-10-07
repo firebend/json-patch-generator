@@ -15,9 +15,9 @@
     <PackageTags>firebend;json;patch;document;jsonpatch;</PackageTags>
     <Authors>Firebend</Authors>
     <RepositoryUrl>https://github.com/firebend/json-patch-generator</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/firebend/json-patch-generator/blob/main/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/firebend/json-patch-generator</PackageProjectUrl>
-    <PackageIconUrl>https://github.com/firebend/json-patch-generator/blob/main/nuget-image.png?raw=true</PackageIconUrl>
+    <PackageIcon>nuget-image.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
