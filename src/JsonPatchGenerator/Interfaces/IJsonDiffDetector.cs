@@ -17,5 +17,5 @@ public interface IJsonDiffDetector
     /// <returns>
     /// A list of <see cref="JsonDiff"/>
     /// </returns>
-    List<JsonDiff> DetectChanges(object original, object modified);
+    public List<JsonDiff> DetectChanges(object original, object modified);
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Firebend.JsonPatch.Extensions;
 using Firebend.JsonPatch.Interfaces;
 using Firebend.JsonPatch.JsonSerializationSettings;
@@ -12,7 +13,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using System.Threading.Tasks;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 
