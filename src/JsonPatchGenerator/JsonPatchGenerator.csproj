@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(FirebendTargetFrameworks)</TargetFrameworks>
-    <Version>9.0.13</Version>
+    <Version>10.0.0</Version>
     <AssemblyName>Firebend.JsonPatchGenerator</AssemblyName>
     <RootNamespace>Firebend.JsonPatch</RootNamespace>
     <LangVersion>default</LangVersion>

@@ -1,4 +1,15 @@
 Json Patch Generator Changelog
+<a name="10.0.0"></a>
+## [10.0.0](https://www.github.com/firebend/json-patch-generator/releases/tag/v10.0.0) (2026-10-08)
+
+### ✨ Features
+
+* target net9.0 and net10.0 with configurable frameworks ([#87](https://www.github.com/firebend/json-patch-generator/issues/87)) ([b118fd9](https://www.github.com/firebend/json-patch-generator/commit/b118fd9138a8b00767d5185e8a0e1019c8dd4f05))
+
+### Breaking Changes
+
+* target net9.0 and net10.0 with configurable frameworks ([#87](https://www.github.com/firebend/json-patch-generator/issues/87)) ([b118fd9](https://www.github.com/firebend/json-patch-generator/commit/b118fd9138a8b00767d5185e8a0e1019c8dd4f05))
+
 <a name="9.0.13"></a>
 ## [9.0.13](https://www.github.com/firebend/json-patch-generator/releases/tag/v9.0.13) (2025-09-17)
 
